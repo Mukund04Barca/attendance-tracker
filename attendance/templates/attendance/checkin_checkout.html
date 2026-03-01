@@ -1,0 +1,994 @@
+{% extends "base.html" %}
+
+{% block title %}Dashboard | Attendance{% endblock %}
+{% block nav_today_active %}active{% endblock %}
+{% block header_title %}Main Dashboard{% endblock %}
+
+{% block extra_head %}
+<style>
+  /* ── Dashboard layout ── */
+  .dash-welcome {
+    font-size: 0.9rem;
+    color: var(--text-muted);
+    margin-top: 2px;
+  }
+
+  .dash-welcome span {
+    color: #60a5fa;
+    font-weight: 500;
+  }
+
+  .dash-grid {
+    display: grid;
+    grid-template-columns: 1fr 300px;
+    gap: 16px;
+    margin-bottom: 20px;
+  }
+
+  /* ── Workspace hero card ── */
+  .workspace-card {
+    background: linear-gradient(135deg, #0d1b3e 0%, #0a1628 60%, #050e1f 100%);
+    border: 1px solid rgba(96, 165, 250, 0.15);
+    border-radius: 16px;
+    padding: 20px 24px;
+    position: relative;
+    overflow: hidden;
+    min-height: 260px;
+    display: flex;
+    flex-direction: column;
+    justify-content: space-between;
+  }
+
+  .workspace-card::before {
+    content: "";
+    position: absolute;
+    top: -60px;
+    right: -60px;
+    width: 280px;
+    height: 280px;
+    background: radial-gradient(circle, rgba(37, 99, 235, 0.18) 0%, transparent 70%);
+    pointer-events: none;
+  }
+
+  .live-badge {
+    display: inline-flex;
+    align-items: center;
+    gap: 7px;
+    background: rgba(16, 185, 129, 0.1);
+    border: 1px solid rgba(16, 185, 129, 0.3);
+    border-radius: 100px;
+    padding: 4px 12px;
+    font-size: 0.72rem;
+    font-weight: 600;
+    color: #34d399;
+    letter-spacing: 0.5px;
+    text-transform: uppercase;
+    margin-bottom: 16px;
+    width: fit-content;
+  }
+
+  .live-badge .live-dot {
+    width: 7px;
+    height: 7px;
+    border-radius: 50%;
+    background: #34d399;
+    box-shadow: 0 0 8px #34d399;
+    animation: livePulse 1.8s ease-in-out infinite;
+  }
+
+  @keyframes livePulse {
+
+    0%,
+    100% {
+      box-shadow: 0 0 6px #34d399;
+    }
+
+    50% {
+      box-shadow: 0 0 14px #34d399, 0 0 24px rgba(52, 211, 153, 0.4);
+    }
+  }
+
+  /* Animated desk scene */
+  .desk-scene {
+    position: absolute;
+    right: 0;
+    bottom: 0;
+    width: 360px;
+    height: 200px;
+    pointer-events: none;
+  }
+
+  /* Monitor */
+  .monitor-stand {
+    position: absolute;
+    bottom: 18px;
+    right: 140px;
+    width: 10px;
+    height: 50px;
+    background: #1e3a5f;
+    border-radius: 3px;
+  }
+
+  .monitor-base {
+    position: absolute;
+    bottom: 14px;
+    right: 122px;
+    width: 46px;
+    height: 8px;
+    background: #1a3050;
+    border-radius: 4px;
+  }
+
+  .monitor-body {
+    position: absolute;
+    bottom: 62px;
+    right: 115px;
+    width: 60px;
+    height: 44px;
+    background: #0c2040;
+    border: 2px solid rgba(96, 165, 250, 0.4);
+    border-radius: 6px;
+    overflow: hidden;
+  }
+
+  .monitor-screen {
+    width: 100%;
+    height: 100%;
+    background: linear-gradient(135deg, #0d2b4a, #1a3f6b);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 0.55rem;
+    color: rgba(96, 165, 250, 0.7);
+    animation: screenFlicker 4s ease-in-out infinite;
+  }
+
+  @keyframes screenFlicker {
+
+    0%,
+    100% {
+      background: linear-gradient(135deg, #0d2b4a, #1a3f6b);
+    }
+
+    50% {
+      background: linear-gradient(135deg, #0f3258, #1e4a7e);
+    }
+  }
+
+  /* Keyboard */
+  .keyboard {
+    position: absolute;
+    bottom: 20px;
+    right: 108px;
+    width: 70px;
+    height: 12px;
+    background: #152d4a;
+    border-radius: 3px;
+    border: 1px solid rgba(96, 165, 250, 0.2);
+  }
+
+  /* Desk plant */
+  .plant-pot {
+    position: absolute;
+    bottom: 18px;
+    right: 68px;
+    width: 20px;
+    height: 22px;
+    background: #1a3a2a;
+    border-radius: 2px 2px 4px 4px;
+  }
+
+  .plant-stem {
+    position: absolute;
+    bottom: 38px;
+    right: 77px;
+    width: 3px;
+    height: 28px;
+    background: #1a4a2a;
+    border-radius: 2px;
+  }
+
+  .plant-leaf1 {
+    position: absolute;
+    bottom: 58px;
+    right: 64px;
+    width: 18px;
+    height: 10px;
+    background: #16a34a;
+    border-radius: 50% 50% 0 50%;
+    transform: rotate(-30deg);
+  }
+
+  .plant-leaf2 {
+    position: absolute;
+    bottom: 52px;
+    right: 78px;
+    width: 16px;
+    height: 10px;
+    background: #15803d;
+    border-radius: 50% 50% 50% 0;
+    transform: rotate(25deg);
+  }
+
+  .plant-leaf3 {
+    position: absolute;
+    bottom: 62px;
+    right: 72px;
+    width: 14px;
+    height: 8px;
+    background: #22c55e;
+    border-radius: 50% 50% 0 50%;
+    transform: rotate(-60deg);
+  }
+
+  /* Coffee */
+  .coffee-cup {
+    position: absolute;
+    bottom: 22px;
+    right: 52px;
+    width: 14px;
+    height: 16px;
+    background: #3b1f0a;
+    border-radius: 2px 2px 4px 4px;
+    border: 1px solid rgba(255, 255, 255, 0.1);
+  }
+
+  .coffee-steam {
+    position: absolute;
+    bottom: 38px;
+    right: 55px;
+    width: 2px;
+    height: 10px;
+    background: rgba(255, 255, 255, 0.15);
+    border-radius: 2px;
+    animation: steam 2s ease-in-out infinite;
+  }
+
+  @keyframes steam {
+
+    0%,
+    100% {
+      height: 10px;
+      opacity: 0.15;
+    }
+
+    50% {
+      height: 16px;
+      opacity: 0.3;
+    }
+  }
+
+  /* Floating orb glow behind scene */
+  .scene-glow {
+    position: absolute;
+    bottom: -50px;
+    right: 60px;
+    width: 220px;
+    height: 220px;
+    background: radial-gradient(circle, rgba(37, 99, 235, 0.12) 0%, transparent 70%);
+    border-radius: 50%;
+    animation: sceneGlow 5s ease-in-out infinite alternate;
+  }
+
+  @keyframes sceneGlow {
+    0% {
+      transform: scale(1);
+      opacity: 0.8;
+    }
+
+    100% {
+      transform: scale(1.15);
+      opacity: 1;
+    }
+  }
+
+  /* Status info in workspace card */
+  .ws-status {
+    display: flex;
+    gap: 28px;
+    margin-top: 8px;
+  }
+
+  .ws-stat {}
+
+  .ws-stat-label {
+    font-size: 0.68rem;
+    letter-spacing: 1px;
+    text-transform: uppercase;
+    color: var(--text-muted);
+    margin-bottom: 3px;
+  }
+
+  .ws-stat-value {
+    font-size: 1.5rem;
+    font-weight: 700;
+    letter-spacing: -0.5px;
+  }
+
+  .ws-stat-value.checked-in {
+    color: #34d399;
+  }
+
+  .ws-stat-value.checked-out {
+    color: #60a5fa;
+  }
+
+  .ws-stat-value.not-in {
+    color: rgba(255, 255, 255, 0.35);
+  }
+
+  .ws-date {
+    position: absolute;
+    bottom: 20px;
+    left: 24px;
+    font-size: 0.75rem;
+    color: rgba(255, 255, 255, 0.25);
+    letter-spacing: 0.5px;
+  }
+
+  /* ── Right column cards ── */
+  .right-col {
+    display: flex;
+    flex-direction: column;
+    gap: 14px;
+  }
+
+  .dash-card {
+    background: #0b1220;
+    border: 1px solid var(--border-subtle);
+    border-radius: 14px;
+    padding: 16px 18px;
+  }
+
+  .dash-card-title {
+    font-size: 0.68rem;
+    font-weight: 700;
+    letter-spacing: 1.5px;
+    text-transform: uppercase;
+    color: var(--text-muted);
+    margin-bottom: 14px;
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+  }
+
+  .dash-card-title .card-icon {
+    font-size: 0.9rem;
+    color: #60a5fa;
+  }
+
+  /* Holidays */
+  .holiday-item {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    padding: 8px 0;
+    border-bottom: 1px solid rgba(255, 255, 255, 0.04);
+    font-size: 0.82rem;
+  }
+
+  .holiday-item:last-child {
+    border-bottom: none;
+  }
+
+  .holiday-date-badge {
+    background: rgba(37, 99, 235, 0.15);
+    border: 1px solid rgba(37, 99, 235, 0.25);
+    color: #93c5fd;
+    border-radius: 6px;
+    padding: 2px 8px;
+    font-size: 0.7rem;
+    font-weight: 600;
+  }
+
+  .no-holidays {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    padding: 14px 0;
+    color: var(--text-muted);
+    font-size: 0.8rem;
+    gap: 8px;
+  }
+
+  .no-holidays-icon {
+    font-size: 1.6rem;
+  }
+
+  /* Status grid in today card */
+  .status-grid {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 10px;
+  }
+
+  .status-cell {
+    background: rgba(255, 255, 255, 0.03);
+    border: 1px solid rgba(255, 255, 255, 0.05);
+    border-radius: 10px;
+    padding: 10px 12px;
+    text-align: center;
+  }
+
+  .status-cell-val {
+    font-size: 1.35rem;
+    font-weight: 700;
+    color: #60a5fa;
+    line-height: 1;
+    margin-bottom: 4px;
+  }
+
+  .status-cell-val.green {
+    color: #34d399;
+  }
+
+  .status-cell-val.amber {
+    color: #fbbf24;
+  }
+
+  .status-cell-label {
+    font-size: 0.65rem;
+    letter-spacing: 0.8px;
+    text-transform: uppercase;
+    color: var(--text-muted);
+  }
+
+  /* ── Core Commander ── */
+  .section-title {
+    font-size: 0.68rem;
+    font-weight: 700;
+    letter-spacing: 2px;
+    text-transform: uppercase;
+    color: var(--text-muted);
+    margin-bottom: 12px;
+  }
+
+  .cmd-grid {
+    display: grid;
+    grid-template-columns: repeat(4, 1fr);
+    gap: 12px;
+    margin-bottom: 20px;
+  }
+
+  .cmd-card {
+    background: #0b1220;
+    border: 1px solid var(--border-subtle);
+    border-radius: 14px;
+    padding: 20px 16px;
+    text-decoration: none;
+    transition: border-color 0.25s, background 0.25s, transform 0.2s;
+    display: flex;
+    flex-direction: column;
+    gap: 10px;
+    cursor: pointer;
+  }
+
+  .cmd-card:hover {
+    background: #0f1a2e;
+    border-color: rgba(96, 165, 250, 0.3);
+    transform: translateY(-2px);
+  }
+
+  .cmd-card-icon {
+    width: 36px;
+    height: 36px;
+    background: rgba(255, 255, 255, 0.04);
+    border: 1px solid rgba(255, 255, 255, 0.07);
+    border-radius: 10px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 1rem;
+  }
+
+  .cmd-card-name {
+    font-size: 0.88rem;
+    font-weight: 600;
+    color: #60a5fa;
+    line-height: 1.3;
+  }
+
+  .cmd-card-sub {
+    font-size: 0.68rem;
+    letter-spacing: 0.5px;
+    text-transform: uppercase;
+    color: var(--text-muted);
+  }
+
+  /* ── Daily Roster strip ── */
+  .daily-roster {
+    background: #0b1220;
+    border: 1px solid var(--border-subtle);
+    border-radius: 14px;
+    padding: 16px 22px;
+  }
+
+  .roster-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: flex-start;
+    margin-bottom: 14px;
+  }
+
+  .roster-label {
+    font-size: 0.72rem;
+    color: var(--text-muted);
+    margin-bottom: 2px;
+  }
+
+  .roster-date {
+    font-size: 1rem;
+    font-weight: 700;
+    color: var(--text-main);
+  }
+
+  .roster-highlight {
+    font-size: 0.75rem;
+    color: var(--text-muted);
+  }
+
+  /* Timeline */
+  .timeline {
+    display: flex;
+    align-items: center;
+    gap: 0;
+    position: relative;
+    padding: 14px 0 4px;
+  }
+
+  .tl-point {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    position: relative;
+    z-index: 1;
+  }
+
+  .tl-dot {
+    width: 12px;
+    height: 12px;
+    border-radius: 50%;
+    border: 2px solid rgba(255, 255, 255, 0.15);
+    background: #0b1220;
+    margin-bottom: 6px;
+  }
+
+  .tl-dot.filled {
+    background: #34d399;
+    border-color: #34d399;
+    box-shadow: 0 0 8px rgba(52, 211, 153, 0.5);
+  }
+
+  .tl-dot.blue {
+    background: #60a5fa;
+    border-color: #60a5fa;
+    box-shadow: 0 0 8px rgba(96, 165, 250, 0.5);
+  }
+
+  .tl-time {
+    font-size: 0.72rem;
+    color: rgba(255, 255, 255, 0.5);
+  }
+
+  .tl-label {
+    font-size: 0.65rem;
+    color: var(--text-muted);
+    letter-spacing: 0.5px;
+  }
+
+  .tl-line {
+    flex: 1;
+    height: 2px;
+    margin-bottom: 28px;
+    background: rgba(255, 255, 255, 0.06);
+  }
+
+  .tl-line.active {
+    background: linear-gradient(90deg, #34d399, #60a5fa);
+  }
+
+  .no-record-msg {
+    text-align: center;
+    color: var(--text-muted);
+    font-size: 0.85rem;
+    padding: 10px 0 4px;
+  }
+
+  /* ── Action buttons ── */
+  .action-row {
+    display: flex;
+    gap: 10px;
+    margin-top: 14px;
+    flex-wrap: wrap;
+  }
+
+  .btn-checkin {
+    background: #16a34a;
+    border: none;
+    color: #fff;
+  }
+
+  .btn-checkout {
+    background: #dc2626;
+    border: none;
+    color: #fff;
+  }
+
+  .btn-manual {
+    background: transparent;
+    border: 1px solid rgba(255, 255, 255, 0.15);
+    color: var(--text-muted);
+  }
+
+  .roster-btn {
+    padding: 8px 20px;
+    border-radius: 8px;
+    font-size: 0.82rem;
+    font-weight: 600;
+    cursor: pointer;
+    transition: opacity 0.2s, transform 0.15s;
+    font-family: inherit;
+  }
+
+  .roster-btn:hover:not(:disabled) {
+    opacity: 0.85;
+    transform: translateY(-1px);
+  }
+
+  .roster-btn:disabled {
+    opacity: 0.3;
+    cursor: not-allowed;
+  }
+
+  /* Manual time modal */
+  .manual-row {
+    display: flex;
+    gap: 10px;
+    align-items: center;
+    flex-wrap: wrap;
+    margin-top: 12px;
+    padding: 12px 14px;
+    background: rgba(255, 255, 255, 0.03);
+    border: 1px solid rgba(255, 255, 255, 0.06);
+    border-radius: 10px;
+  }
+
+  .manual-row input[type="time"] {
+    background: #0b1220;
+    border: 1px solid rgba(255, 255, 255, 0.1);
+    border-radius: 6px;
+    color: var(--text-main);
+    padding: 6px 10px;
+    font-size: 0.82rem;
+    font-family: inherit;
+  }
+
+  .manual-row label {
+    font-size: 0.75rem;
+    color: var(--text-muted);
+  }
+
+  /* Weekly progress bar */
+  .progress-wrap {
+    margin-top: 10px;
+  }
+
+  .progress-label {
+    display: flex;
+    justify-content: space-between;
+    font-size: 0.72rem;
+    color: var(--text-muted);
+    margin-bottom: 5px;
+  }
+
+  .progress-bar {
+    height: 5px;
+    border-radius: 3px;
+    background: rgba(255, 255, 255, 0.07);
+    overflow: hidden;
+  }
+
+  .progress-fill {
+    height: 100%;
+    border-radius: 3px;
+    background: linear-gradient(90deg, #2563eb, #34d399);
+    transition: width 0.6s ease;
+  }
+
+  /* ── Responsive ── */
+  @media (max-width: 900px) {
+    .dash-grid {
+      grid-template-columns: 1fr;
+    }
+
+    .cmd-grid {
+      grid-template-columns: repeat(2, 1fr);
+    }
+
+    .desk-scene {
+      display: none;
+    }
+  }
+
+  @media (max-width: 560px) {
+    .cmd-grid {
+      grid-template-columns: 1fr 1fr;
+    }
+
+    .status-grid {
+      grid-template-columns: 1fr 1fr;
+    }
+  }
+</style>
+{% endblock %}
+
+{% block content %}
+
+<!-- Welcome subtitle -->
+<p class="dash-welcome mb-3">
+  Welcome back, <span>{{ user.username }}</span>.
+  Here's what's happening today.
+</p>
+
+<!-- ══════════ MAIN 2-COL GRID ══════════ -->
+<div class="dash-grid">
+
+  <!-- ── Workspace hero card ── -->
+  <div class="workspace-card">
+    <div>
+      <div class="live-badge">
+        <span class="live-dot"></span>
+        Live Attendance Status
+      </div>
+      <div class="ws-status">
+        <div class="ws-stat">
+          <div class="ws-stat-label">Check-in</div>
+          <div class="ws-stat-value {% if check_in_display %}checked-in{% else %}not-in{% endif %}">
+            {{ check_in_display|default:"—" }}
+          </div>
+        </div>
+        <div class="ws-stat">
+          <div class="ws-stat-label">Check-out</div>
+          <div class="ws-stat-value {% if check_out_display %}checked-out{% else %}not-in{% endif %}">
+            {{ check_out_display|default:"—" }}
+          </div>
+        </div>
+        {% if hours_today is not None %}
+        <div class="ws-stat">
+          <div class="ws-stat-label">Worked</div>
+          <div
+            class="ws-stat-value {% if hours_today >= daily_target_hours %}checked-in{% else %}checked-out{% endif %}">
+            {{ hours_today }}h
+          </div>
+        </div>
+        {% endif %}
+      </div>
+    </div>
+
+    <!-- CSS Desk illustration -->
+    <div class="desk-scene">
+      <div class="scene-glow"></div>
+      <div class="monitor-body">
+        <div class="monitor-screen">●●●</div>
+      </div>
+      <div class="monitor-stand"></div>
+      <div class="monitor-base"></div>
+      <div class="keyboard"></div>
+      <div class="plant-pot"></div>
+      <div class="plant-stem"></div>
+      <div class="plant-leaf1"></div>
+      <div class="plant-leaf2"></div>
+      <div class="plant-leaf3"></div>
+      <div class="coffee-cup"></div>
+      <div class="coffee-steam"></div>
+    </div>
+
+    {% if record.is_holiday %}
+    <span
+      style="position:absolute;top:18px;right:18px;background:rgba(245,158,11,0.15);border:1px solid rgba(245,158,11,0.35);color:#fbbf24;border-radius:8px;padding:3px 10px;font-size:0.72rem;font-weight:600;">
+      🏖 Holiday
+    </span>
+    {% elif expected_checkout and not check_out_display %}
+    <span
+      style="position:absolute;top:18px;right:18px;background:rgba(96,165,250,0.1);border:1px solid rgba(96,165,250,0.25);color:#93c5fd;border-radius:8px;padding:3px 10px;font-size:0.72rem;">
+      Target out: <strong>{{ expected_checkout }}</strong>
+    </span>
+    {% endif %}
+
+    <div class="ws-date">{{ today|date:"l, d F Y" }}</div>
+  </div>
+
+  <!-- ── Right column ── -->
+  <div class="right-col">
+
+    <!-- Upcoming Holidays -->
+    <div class="dash-card">
+      <div class="dash-card-title">
+        Upcoming Holidays
+        <span class="card-icon">📅</span>
+      </div>
+      {% if upcoming_holidays %}
+      {% for h in upcoming_holidays %}
+      <div class="holiday-item">
+        <span>{{ h.name }}</span>
+        <span class="holiday-date-badge">{{ h.date|date:"d M" }}</span>
+      </div>
+      {% endfor %}
+      {% else %}
+      <div class="no-holidays">
+        <span class="no-holidays-icon">🎉</span>
+        <span>No upcoming holidays</span>
+      </div>
+      {% endif %}
+    </div>
+
+    <!-- Today's Status -->
+    <div class="dash-card">
+      <div class="dash-card-title">
+        Today's Status
+        <span class="card-icon" style="color:#34d399;">●</span>
+      </div>
+      <div class="status-grid">
+        <div class="status-cell">
+          <div class="status-cell-val {% if check_in_display %}green{% endif %}">
+            {{ check_in_display|default:"—" }}
+          </div>
+          <div class="status-cell-label">Check-in</div>
+        </div>
+        <div class="status-cell">
+          <div class="status-cell-val">
+            {{ check_out_display|default:"—" }}
+          </div>
+          <div class="status-cell-label">Check-out</div>
+        </div>
+        <div class="status-cell">
+          <div class="status-cell-val {% if hours_today is not None %}amber{% endif %}">
+            {% if hours_today is not None %}{{ hours_today }}h{% else %}—{% endif %}
+          </div>
+          <div class="status-cell-label">Today hrs</div>
+        </div>
+        <div class="status-cell">
+          <div class="status-cell-val">{{ weekly_total }}h</div>
+          <div class="status-cell-label">Week total</div>
+        </div>
+      </div>
+      <!-- Weekly progress bar -->
+      <div class="progress-wrap">
+        <div class="progress-label">
+          <span>Weekly progress</span>
+          <span>{{ weekly_total }} / {{ weekly_target }}h</span>
+        </div>
+        <div class="progress-bar">
+          {% widthratio weekly_total weekly_target 100 as pct %}
+          <div class="progress-fill" style="width: {% if pct > 100 %}100{% else %}{{ pct }}{% endif %}%;"></div>
+        </div>
+      </div>
+    </div>
+
+  </div>
+</div><!-- /dash-grid -->
+
+
+<!-- ══════════ CORE COMMANDER ══════════ -->
+<div class="section-title">Core Commander</div>
+<div class="cmd-grid">
+
+  <a href="{% url 'month_calendar' %}" class="cmd-card">
+    <div class="cmd-card-icon">📋</div>
+    <div>
+      <div class="cmd-card-name">Full Roster View</div>
+      <div class="cmd-card-sub">Edit &amp; manage monthly plan</div>
+    </div>
+  </a>
+
+  <a href="{% url 'month_excel_export' %}" class="cmd-card">
+    <div class="cmd-card-icon">⬇</div>
+    <div>
+      <div class="cmd-card-name">Export Data</div>
+      <div class="cmd-card-sub">Download this month's Excel</div>
+    </div>
+  </a>
+
+  <a href="{% url 'weekly_summary' %}" class="cmd-card">
+    <div class="cmd-card-icon">📊</div>
+    <div>
+      <div class="cmd-card-name">View Analytics</div>
+      <div class="cmd-card-sub">Check weekly statistics</div>
+    </div>
+  </a>
+
+  <a href="{% url 'holiday_list' %}" class="cmd-card">
+    <div class="cmd-card-icon">🔔</div>
+    <div>
+      <div class="cmd-card-name">Holidays</div>
+      <div class="cmd-card-sub">View &amp; manage holidays</div>
+    </div>
+  </a>
+
+</div>
+
+
+<!-- ══════════ DAILY ROSTER ══════════ -->
+<div class="daily-roster">
+  <div class="roster-header">
+    <div>
+      <div class="roster-label">Daily Shift Roster</div>
+      <div class="roster-date" id="live-date">{{ today|date:"d-M-Y" }}</div>
+    </div>
+    <div class="roster-highlight">
+      Highlighted = you ({{ user.username }})
+    </div>
+  </div>
+
+  {% if record.check_in or record.check_out %}
+  <!-- Timeline -->
+  <div class="timeline">
+    <div class="tl-point">
+      <div class="tl-dot {% if check_in_display %}filled{% endif %}"></div>
+      <div class="tl-time">{{ check_in_display|default:"—" }}</div>
+      <div class="tl-label">In</div>
+    </div>
+    <div class="tl-line {% if check_in_display %}active{% endif %}"></div>
+    <div class="tl-point">
+      <div class="tl-dot {% if check_out_display %}blue{% endif %}"></div>
+      <div class="tl-time">{{ check_out_display|default:"—" }}</div>
+      <div class="tl-label">Out</div>
+    </div>
+    {% if hours_today is not None %}
+    <div style="margin-left:18px;font-size:0.8rem;color:var(--text-muted);margin-bottom:28px;">
+      ⏱ <strong style="color:#34d399;">{{ hours_today }}h</strong> worked
+      {% if hours_today >= daily_target_hours %}
+      <span style="color:#34d399;font-size:0.7rem;"> ✓ Target met</span>
+      {% endif %}
+    </div>
+    {% endif %}
+  </div>
+  {% else %}
+  <div class="no-record-msg">No shifts recorded for today yet.</div>
+  {% endif %}
+
+  <!-- Action buttons -->
+  <form method="post" style="display:contents;">
+    {% csrf_token %}
+    <div class="action-row">
+      <button name="action" value="check_in" class="roster-btn btn-checkin" {% if record.check_in %}disabled{% endif %}>
+        ✓ Check In
+      </button>
+      <button name="action" value="check_out" class="roster-btn btn-checkout" {% if not record.check_in or record.check_out %}disabled{% endif %}>
+        ✗ Check Out
+      </button>
+      <button type="button" class="roster-btn btn-manual"
+        onclick="document.getElementById('manual-row').style.display=document.getElementById('manual-row').style.display==='none'?'flex':'none'">
+        ⏱ Manual
+      </button>
+      {% if record.check_in or record.check_out %}
+      <button name="action" value="delete" class="roster-btn"
+        style="background:transparent;border:1px solid rgba(239,68,68,0.3);color:rgba(239,68,68,0.7);margin-left:auto;"
+        onclick="return confirm('Delete today\'s record?')">
+        🗑 Delete
+      </button>
+      {% endif %}
+    </div>
+  </form>
+
+  <!-- Manual time form (hidden by default) -->
+  <form method="post">
+    {% csrf_token %}
+    <div id="manual-row" class="manual-row" style="display:none;">
+      <div>
+        <label>Manual Check-in</label><br>
+        <input type="time" name="manual_check_in" />
+      </div>
+      <div>
+        <label>Manual Check-out</label><br>
+        <input type="time" name="manual_check_out" />
+      </div>
+      <button name="action" value="set_manual" class="roster-btn btn-checkin" style="margin-top:16px;">
+        Save
+      </button>
+    </div>
+  </form>
+
+</div><!-- /daily-roster -->
+
+{% endblock %}

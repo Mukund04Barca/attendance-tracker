@@ -1,0 +1,30 @@
+attendance:
+  workday_start: "09:00"
+  workday_end: "18:00"
+  weekly_hours_target: 40
+  daily_hours_target: 9
+  default_allowance_hours: 0.5
+
+  # ISO date strings for fixed holidays
+  holidays:
+    - "2026-01-01"
+    - "2026-12-25"
+
+logging:
+  version: 1
+  disable_existing_loggers: false
+  handlers:
+    file:
+      class: logging.FileHandler
+      level: INFO
+      filename: attendance.log
+  loggers:
+    django.request:
+      handlers: [file]
+      level: INFO
+      propagate: true
+    attendance:
+      handlers: [file]
+      level: INFO
+      propagate: true
+

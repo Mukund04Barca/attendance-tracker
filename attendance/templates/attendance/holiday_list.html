@@ -1,0 +1,278 @@
+{% extends "base.html" %}
+
+{% block title %}Holidays | Attendance{% endblock %}
+{% block nav_holidays_active %}active{% endblock %}
+{% block header_title %}Holidays{% endblock %}
+
+{% block extra_head %}
+<style>
+  .holidays-layout {
+    display: grid;
+    grid-template-columns: 1fr 340px;
+    gap: 20px;
+    align-items: start;
+  }
+
+  @media (max-width: 900px) {
+    .holidays-layout {
+      grid-template-columns: 1fr;
+    }
+  }
+
+  /* Holiday list card */
+  .holiday-list-card {
+    background: #080f1e;
+    border: 1px solid rgba(255, 255, 255, 0.07);
+    border-radius: 18px;
+    overflow: hidden;
+  }
+
+  .holiday-list-header {
+    padding: 18px 22px;
+    border-bottom: 1px solid rgba(255, 255, 255, 0.06);
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+  }
+
+  .holiday-list-title {
+    font-size: 0.72rem;
+    font-weight: 700;
+    letter-spacing: 1.5px;
+    text-transform: uppercase;
+    color: #64748b;
+  }
+
+  .holiday-count {
+    background: rgba(251, 191, 36, 0.12);
+    border: 1px solid rgba(251, 191, 36, 0.25);
+    color: #fbbf24;
+    border-radius: 100px;
+    padding: 2px 10px;
+    font-size: 0.7rem;
+    font-weight: 700;
+  }
+
+  .holiday-row {
+    display: flex;
+    align-items: center;
+    gap: 16px;
+    padding: 14px 22px;
+    border-bottom: 1px solid rgba(255, 255, 255, 0.04);
+    transition: background 0.15s;
+  }
+
+  .holiday-row:last-child {
+    border-bottom: none;
+  }
+
+  .holiday-row:hover {
+    background: rgba(255, 255, 255, 0.02);
+  }
+
+  .holiday-icon {
+    width: 40px;
+    height: 40px;
+    background: rgba(251, 191, 36, 0.1);
+    border: 1px solid rgba(251, 191, 36, 0.2);
+    border-radius: 12px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 1.1rem;
+    flex-shrink: 0;
+  }
+
+  .holiday-name {
+    font-size: 0.9rem;
+    font-weight: 600;
+    color: #e2e8f0;
+    margin-bottom: 2px;
+  }
+
+  .holiday-date-str {
+    font-size: 0.72rem;
+    color: #475569;
+  }
+
+  .holiday-date-badge {
+    margin-left: auto;
+    background: rgba(37, 99, 235, 0.12);
+    border: 1px solid rgba(37, 99, 235, 0.2);
+    color: #93c5fd;
+    border-radius: 8px;
+    padding: 4px 12px;
+    font-size: 0.72rem;
+    font-weight: 600;
+    white-space: nowrap;
+    flex-shrink: 0;
+  }
+
+  .no-holidays-state {
+    padding: 50px 20px;
+    text-align: center;
+    color: #1e293b;
+  }
+
+  .no-holidays-state .big-icon {
+    font-size: 3rem;
+    margin-bottom: 12px;
+  }
+
+  .no-holidays-state p {
+    font-size: 0.85rem;
+    color: #334155;
+  }
+
+  /* Add holiday form card */
+  .add-form-card {
+    background: #080f1e;
+    border: 1px solid rgba(37, 99, 235, 0.2);
+    border-radius: 18px;
+    overflow: hidden;
+  }
+
+  .add-form-header {
+    padding: 16px 20px;
+    border-bottom: 1px solid rgba(255, 255, 255, 0.06);
+    font-size: 0.72rem;
+    font-weight: 700;
+    letter-spacing: 1.5px;
+    text-transform: uppercase;
+    color: #64748b;
+    display: flex;
+    align-items: center;
+    gap: 8px;
+  }
+
+  .add-form-body {
+    padding: 20px;
+  }
+
+  .add-input {
+    width: 100%;
+    background: #0b1220;
+    border: 1px solid rgba(255, 255, 255, 0.1);
+    border-radius: 10px;
+    color: #e2e8f0;
+    padding: 10px 13px;
+    font-size: 0.88rem;
+    font-family: 'Inter', sans-serif;
+    outline: none;
+    transition: border-color 0.2s, box-shadow 0.2s;
+    margin-bottom: 12px;
+  }
+
+  .add-input:focus {
+    border-color: rgba(37, 99, 235, 0.5);
+    box-shadow: 0 0 0 3px rgba(37, 99, 235, 0.1);
+  }
+
+  .add-label {
+    font-size: 0.68rem;
+    font-weight: 700;
+    text-transform: uppercase;
+    letter-spacing: 0.8px;
+    color: #475569;
+    margin-bottom: 5px;
+    display: block;
+  }
+
+  .btn-add-holiday {
+    width: 100%;
+    background: linear-gradient(135deg, #2563eb, #1d4ed8);
+    border: none;
+    color: #fff;
+    border-radius: 10px;
+    padding: 11px;
+    font-size: 0.88rem;
+    font-weight: 700;
+    cursor: pointer;
+    font-family: 'Inter', sans-serif;
+    transition: transform 0.15s, box-shadow 0.2s;
+    box-shadow: 0 4px 14px rgba(37, 99, 235, 0.3);
+    margin-top: 6px;
+  }
+
+  .btn-add-holiday:hover {
+    transform: translateY(-1px);
+    box-shadow: 0 8px 22px rgba(37, 99, 235, 0.4);
+  }
+
+  .staff-note {
+    margin-top: 14px;
+    font-size: 0.72rem;
+    color: #334155;
+    text-align: center;
+  }
+</style>
+{% endblock %}
+
+{% block content %}
+
+<div style="margin-bottom:22px;">
+  <div style="font-size:1.35rem;font-weight:800;margin-bottom:3px;">🔔 Holiday Calendar</div>
+  <div style="font-size:0.78rem;color:#64748b;">View and manage official holidays</div>
+</div>
+
+<div class="holidays-layout">
+
+  <!-- ── Holiday list ── -->
+  <div class="holiday-list-card">
+    <div class="holiday-list-header">
+      <div class="holiday-list-title">📅 Configured Holidays</div>
+      <div class="holiday-count">{{ holidays|length }} holiday{{ holidays|length|pluralize }}</div>
+    </div>
+
+    {% if holidays %}
+    {% for h in holidays %}
+    <div class="holiday-row">
+      <div class="holiday-icon">🏖</div>
+      <div>
+        <div class="holiday-name">{{ h.name }}</div>
+        <div class="holiday-date-str">{{ h.date|date:"l" }}</div>
+      </div>
+      <div class="holiday-date-badge">{{ h.date|date:"d M Y" }}</div>
+    </div>
+    {% endfor %}
+    {% else %}
+    <div class="no-holidays-state">
+      <div class="big-icon">🎉</div>
+      <p>No holidays have been configured yet.</p>
+      {% if user.is_staff %}
+      <p style="margin-top:6px;">Use the form on the right to add one.</p>
+      {% endif %}
+    </div>
+    {% endif %}
+  </div>
+
+  <!-- ── Add holiday (staff only) ── -->
+  {% if user.is_staff %}
+  <div class="add-form-card">
+    <div class="add-form-header">
+      <span>➕</span> Add New Holiday
+    </div>
+    <div class="add-form-body">
+      <form method="post">
+        {% csrf_token %}
+        <label class="add-label" for="id_date">Date</label>
+        <input type="date" id="id_date" name="date" class="add-input" required />
+
+        <label class="add-label" for="id_name">Holiday Name</label>
+        <input type="text" id="id_name" name="name" class="add-input" placeholder="e.g. Diwali" />
+
+        <button type="submit" class="btn-add-holiday">💾 Save Holiday</button>
+      </form>
+      <div class="staff-note">Only staff accounts can manage holidays.</div>
+    </div>
+  </div>
+  {% else %}
+  <div
+    style="background:#080f1e;border:1px solid rgba(255,255,255,0.06);border-radius:18px;padding:24px;text-align:center;color:#334155;">
+    <div style="font-size:2rem;margin-bottom:10px;">🔒</div>
+    <div style="font-size:0.82rem;">Only staff users can add holidays.</div>
+  </div>
+  {% endif %}
+
+</div>
+{% endblock %}
