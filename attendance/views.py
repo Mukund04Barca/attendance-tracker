@@ -167,6 +167,17 @@ def weekly_summary_view(request):
     df = pd.DataFrame(list(qs))
     summary = {}
 
+    # Dynamic weekly target: Mon–Fri working days minus holidays, * 9h
+    working_days = 0
+    for i in range(7):
+        d = start_date + timedelta(days=i)
+        if d.weekday() >= 5:
+            continue  # skip Saturday/Sunday
+        if Holiday.objects.filter(date=d).exists() or is_config_holiday(d):
+            continue
+        working_days += 1
+    weekly_target = round(working_days * DAILY_TARGET_HOURS, 2)
+
     if not df.empty:
         df["check_in"] = pd.to_datetime(df["check_in"], utc=True).dt.tz_convert(
             settings.TIME_ZONE
@@ -198,13 +209,13 @@ def weekly_summary_view(request):
             "rows": df.to_dict(orient="records"),
             "weekly_avg": round(float(weekly_avg), 2),
             "weekly_total": round(float(weekly_total), 2),
-            "weekly_target": WEEKLY_TARGET,
         }
 
     context = {
         "summary": summary,
         "start_date": start_date,
         "end_date": today,
+        "weekly_target": weekly_target,
     }
     return render(request, "attendance/weekly_summary.html", context)
 

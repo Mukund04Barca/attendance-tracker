@@ -283,15 +283,15 @@
     <div class="week-stat-label">Daily Average</div>
   </div>
   <div class="week-stat">
-    <div class="week-stat-val green">{{ summary.weekly_target }}</div>
+    <div class="week-stat-val green">{{ weekly_target }}</div>
     <div class="week-stat-label">Weekly Target</div>
   </div>
   <div class="week-stat">
-    {% if summary.weekly_total >= summary.weekly_target %}
+    {% if summary.weekly_total >= weekly_target %}
     <div class="week-stat-val green">✓</div>
     <div class="week-stat-label">Target Met</div>
     {% else %}
-    <div class="week-stat-val purple">{{ summary.weekly_target|floatformat:0 }}h left</div>
+    <div class="week-stat-val purple">{{ weekly_target|floatformat:0 }}h left</div>
     <div class="week-stat-label">Remaining</div>
     {% endif %}
   </div>
@@ -301,10 +301,10 @@
 <div class="target-bar-wrap">
   <div class="target-bar-header">
     <span>Weekly progress</span>
-    <span>{{ summary.weekly_total }}h / {{ summary.weekly_target }}h</span>
+    <span>{{ summary.weekly_total }}h / {{ weekly_target }}h</span>
   </div>
   <div class="target-bar-track">
-    {% widthratio summary.weekly_total summary.weekly_target 100 as wpct %}
+    {% widthratio summary.weekly_total weekly_target 100 as wpct %}
     <div class="target-bar-fill" style="width:{% if wpct > 100 %}100{% else %}{{ wpct }}{% endif %}%"></div>
   </div>
 </div>
