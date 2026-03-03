@@ -5,16 +5,21 @@ import yaml
 BASE_DIR = Path(__file__).resolve().parent.parent
 
 # SECURITY WARNING: keep the secret key used in production secret!
-SECRET_KEY = "django-insecure-change-this-key"
+# Read from environment for production; fall back only for local dev.
+SECRET_KEY = os.environ.get("DJANGO_SECRET_KEY", "dev-insecure-key-change-me")
 
 # SECURITY WARNING: don't run with debug turned on in production!
-DEBUG = True
+DEBUG = os.environ.get("DJANGO_DEBUG", "True").lower() == "true"
 
+# Hosts that can access this app. In production, set DJANGO_ALLOWED_HOSTS
+# to a comma-separated list like "yourdomain.com,www.yourdomain.com".
 ALLOWED_HOSTS: list[str] = [
-    "localhost",
-    "127.0.0.1",
-    "192.168.29.122",   # your PC's local IP — update if it changes
-    "*",                # allows any device on your LAN (fine for dev)
+    h.strip()
+    for h in os.environ.get(
+        "DJANGO_ALLOWED_HOSTS",
+        "localhost,127.0.0.1",
+    ).split(",")
+    if h.strip()
 ]
 
 # Authentication redirects
@@ -102,7 +107,8 @@ USE_TZ = True
 # Static files
 
 STATIC_URL = "static/"
-STATIC_ROOT = BASE_DIR / "static"
+# In production, collectstatic will write here; in dev you can still use it.
+STATIC_ROOT = BASE_DIR / "staticfiles"
 
 DEFAULT_AUTO_FIELD = "django.db.models.BigAutoField"
 
@@ -138,5 +144,27 @@ DEFAULT_LOGGING_CONFIG = {
     },
 }
 
+# Logging: prefer YAML config; fall back to sane console/file defaults.
 LOGGING = APP_CONFIG.get("logging") or DEFAULT_LOGGING_CONFIG
 
+# ------------------------------------------------------------------
+# Security hardening for production
+# ------------------------------------------------------------------
+if not DEBUG:
+    # Trust these origins for CSRF (update when you know your domain)
+    CSRF_TRUSTED_ORIGINS = [
+        f"https://{host}"
+        for host in ALLOWED_HOSTS
+        if host not in ("localhost", "127.0.0.1")
+    ]
+
+    SECURE_SSL_REDIRECT = True
+    SESSION_COOKIE_SECURE = True
+    CSRF_COOKIE_SECURE = True
+
+    SECURE_HSTS_SECONDS = 31536000  # one year
+    SECURE_HSTS_INCLUDE_SUBDOMAINS = True
+    SECURE_HSTS_PRELOAD = True
+
+    SECURE_BROWSER_XSS_FILTER = True
+    SECURE_CONTENT_TYPE_NOSNIFF = True
