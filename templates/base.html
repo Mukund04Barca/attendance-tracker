@@ -35,14 +35,14 @@
 
     :root {
       --bg: #020617;
-      --bg-card: #080f1e;
-      --border: rgba(255, 255, 255, 0.07);
-      --border-hi: rgba(96, 165, 250, 0.25);
-      --text: #e2e8f0;
-      --muted: #64748b;
-      --accent: #2563eb;
+      --bg-glass: rgba(8, 15, 30, 0.65);
+      --border: rgba(255, 255, 255, 0.08);
+      --border-hi: rgba(0, 245, 255, 0.3);
+      --text: #f1f5f9;
+      --muted: #94a3b8;
+      --accent: #00f5ff; /* Precise Presence Cyan */
       --accent2: #34d399;
-      --danger: #ef4444;
+      --danger: #ff4d4d;
       --sidebar-w: 220px;
       --font: 'Inter', sans-serif;
     }
@@ -154,13 +154,13 @@
     }
 
     .nav-item a.active {
-      background: rgba(37, 99, 235, 0.15);
-      color: #93c5fd;
-      border: 1px solid rgba(37, 99, 235, 0.2);
+      background: rgba(0, 245, 255, 0.1);
+      color: #74f9ff;
+      border: 1px solid rgba(0, 245, 255, 0.2);
     }
-
     .nav-item a.active .nav-icon {
-      color: #60a5fa;
+      color: var(--accent);
+      text-shadow: 0 0 10px rgba(0, 245, 255, 0.5);
     }
 
     /* Live clock in sidebar footer */
@@ -220,9 +220,7 @@
       display: flex;
       flex-direction: column;
       min-height: 100vh;
-      background: radial-gradient(ellipse 80% 60% at 10% 0%, rgba(37, 99, 235, 0.08) 0%, transparent 60%),
-        radial-gradient(ellipse 50% 40% at 90% 80%, rgba(52, 211, 153, 0.05) 0%, transparent 60%),
-        var(--bg);
+      /* Background is moved to inline style for better IDE parsing */
     }
 
     /* ═══ HEADER ═══ */
@@ -232,8 +230,9 @@
       display: flex;
       justify-content: space-between;
       align-items: center;
-      background: rgba(2, 6, 23, 0.7);
-      backdrop-filter: blur(10px);
+      background: rgba(2, 6, 23, 0.4);
+      backdrop-filter: blur(20px) saturate(180%);
+      -webkit-backdrop-filter: blur(20px) saturate(180%);
       position: sticky;
       top: 0;
       z-index: 50;
@@ -809,7 +808,7 @@
     </aside>
 
     <!-- ══════════ MAIN ══════════ -->
-    <main class="layout-main">
+    <main class="layout-main" style="background: linear-gradient(rgba(2, 6, 23, 0.8), rgba(2, 6, 23, 0.45)), url('file:///C:/Users/HP/.gemini/antigravity/brain/757b2742-7244-4fa0-b900-856fc60d2716/futuristic_workspace_hero_1776016799841.png') center/cover no-repeat fixed;">
 
       <!-- Header -->
       <header class="layout-header">

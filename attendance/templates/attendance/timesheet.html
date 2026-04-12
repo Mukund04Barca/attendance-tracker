@@ -7,6 +7,10 @@
 
 {% block extra_head %}
 <style>
+  :root { 
+    --cyan: #00f5ff; 
+    --cyan-glow: rgba(0, 245, 255, 0.4);
+  }
   /* ── Summary Dashboard & Toolbar ── */
   .ts-dashboard {
     display: grid;
@@ -15,8 +19,10 @@
     margin-bottom: 24px;
   }
   .s-card {
-    background: #0a1628;
-    border: 1px solid rgba(255,255,255,0.07);
+    background: var(--bg-glass);
+    backdrop-filter: blur(14px);
+    -webkit-backdrop-filter: blur(14px);
+    border: 1px solid var(--border);
     border-radius: 12px;
     padding: 12px 16px;
     display: flex;
@@ -36,6 +42,11 @@
     margin-bottom: 20px;
     flex-wrap: wrap;
     gap: 15px;
+    background: var(--bg-glass);
+    backdrop-filter: blur(14px);
+    padding: 12px;
+    border-radius: 12px;
+    border: 1px solid var(--border);
   }
 
   /* ── Week Pills ── */
@@ -52,15 +63,15 @@
     transition: all 0.2s;
   }
   .week-pill:hover { color: #e2e8f0; background: rgba(255,255,255,0.05); }
-  .week-pill.active { background: #2563eb; color: #fff; border-color: #3b82f6; box-shadow: 0 4px 12px rgba(37,99,235,0.2); }
+  .week-pill.active { background: var(--cyan); color: #000; border-color: var(--cyan); box-shadow: 0 0 15px var(--cyan-glow); }
 
   /* ── Month Nav ── */
   .ts-month-nav { display: flex; align-items: center; gap: 8px; }
   .ts-nav-btn {
-    background: rgba(255,255,255,0.04);
-    border: 1px solid rgba(255,255,255,0.1);
+    background: rgba(0, 245, 255, 0.1);
+    border: 1px solid rgba(0, 245, 255, 0.3);
     border-radius: 9px;
-    color: #94a3b8;
+    color: var(--cyan);
     padding: 7px 14px;
     font-size: 0.8rem;
     cursor: pointer;
@@ -101,8 +112,22 @@
   }
   .btn-add-row:hover { background: rgba(37,99,235,0.2); }
 
-  .btn-save-ts { background: #2563eb; border: none; color: #fff; border-radius: 9px; padding: 8px 24px; font-size: 0.85rem; font-weight: 700; cursor: pointer; box-shadow: 0 4px 14px rgba(37,99,235,0.2); }
-  .btn-save-ts:hover { background: #1d4ed8; transform: translateY(-1px); }
+  .btn-save-ts { 
+    background: linear-gradient(135deg, #00d2ff, #2563eb);
+    border: none; 
+    color: #fff; 
+    border-radius: 9px; 
+    padding: 8px 24px; 
+    font-size: 0.85rem; 
+    font-weight: 700; 
+    cursor: pointer; 
+    box-shadow: 0 4px 14px rgba(0, 245, 255, 0.4); 
+    transition: all 0.2s;
+  }
+  .btn-save-ts:hover { 
+    transform: translateY(-1px);
+    box-shadow: 0 8px 20px rgba(0, 245, 255, 0.6);
+  }
 
   /* Legend */
   .ts-legend { display: flex; gap: 12px; margin-bottom: 12px; flex-wrap: wrap; }
@@ -125,11 +150,9 @@
 <!-- ── Toolbar ── -->
 <div class="ts-toolbar">
   <div class="week-pills" id="weekPills">
-    <button type="button" class="week-pill active" onclick="showWeek(1)" id="wp-1">W1</button>
-    <button type="button" class="week-pill" onclick="showWeek(2)" id="wp-2">W2</button>
-    <button type="button" class="week-pill" onclick="showWeek(3)" id="wp-3">W3</button>
-    <button type="button" class="week-pill" onclick="showWeek(4)" id="wp-4">W4</button>
-    {% if days|length > 28 %}<button type="button" class="week-pill" onclick="showWeek(5)" id="wp-5">W5</button>{% endif %}
+    {% for week in week_ranges %}
+    <button type="button" class="week-pill {% if forloop.first %}active{% endif %}" onclick="showWeek({{ forloop.counter }})" id="wp-{{ forloop.counter }}">W{{ forloop.counter }}</button>
+    {% endfor %}
   </div>
 
   <div class="ts-month-nav">
@@ -248,20 +271,21 @@
 
 <script>
   // ── Weekly Navigation Logic ──
-  const daysInMonth = {{ days|length }};
+  const daysInMonth = parseInt("{{ days|length }}") || 0;
+  const weekRanges = {{ week_ranges|safe }};
   
-  function showWeek(wk) {
+  function showWeek(wkIdx) {
+    // wkIdx is 1-based from the UI
+    const weekDays = weekRanges[wkIdx - 1];
+    
     // Update pills
     document.querySelectorAll('.week-pill').forEach(p => p.classList.remove('active'));
-    document.getElementById('wp-' + wk).classList.add('active');
+    document.getElementById('wp-' + wkIdx).classList.add('active');
 
     // Filter columns
-    const start = (wk - 1) * 7 + 1;
-    const end = wk * 7;
-    
     for (let d = 1; d <= daysInMonth; d++) {
       const cols = document.querySelectorAll('.d-' + d);
-      if (d >= start && d <= end) {
+      if (weekDays.includes(d)) {
         cols.forEach(c => c.classList.remove('hidden'));
       } else {
         cols.forEach(c => c.classList.add('hidden'));
@@ -316,7 +340,7 @@
     }
   });
 
-  let rowIdx = {{ activities|length }};
+  let rowIdx = parseInt("{{ activities|length }}") || 0;
   function addRow() {
     const tbody = document.getElementById('tsBody');
     const idx = rowIdx++;

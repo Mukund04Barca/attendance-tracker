@@ -139,7 +139,7 @@ def checkin_checkout_view(request):
                 max((r.check_out - r.check_in).total_seconds() / 3600.0, 0)
                 for r in AttendanceRecord.objects.filter(
                     user=request.user,
-                    date__range=(today - timedelta(days=6), today),
+                    date__range=(today - timedelta(days=today.weekday()), today),
                     check_in__isnull=False,
                     check_out__isnull=False,
                 )
@@ -156,12 +156,15 @@ def checkin_checkout_view(request):
 @login_required
 def weekly_summary_view(request):
     today = timezone.localtime(timezone.now()).date()
-    start_date = today - timedelta(days=6)
+    # Start of current week (Monday)
+    start_date = today - timedelta(days=today.weekday())
+    # End of current week (Sunday)
+    end_date = start_date + timedelta(days=6)
 
     qs = (
         AttendanceRecord.objects.filter(
             user=request.user,
-            date__range=(start_date, today),
+            date__range=(start_date, end_date),
         )
         .order_by("date")
         .values("date", "check_in", "check_out", "is_holiday", "allowance_hours", "leave_type")
@@ -217,7 +220,7 @@ def weekly_summary_view(request):
     context = {
         "summary": summary,
         "start_date": start_date,
-        "end_date": today,
+        "end_date": end_date,
         "weekly_target": weekly_target,
     }
     return render(request, "attendance/weekly_summary.html", context)
@@ -643,6 +646,17 @@ def timesheet_view(request):
             d = int(day_str)
             totals_per_day[d] = totals_per_day.get(d, 0) + hrs
 
+    # Calculate actual weeks (Monday to Sunday blocks)
+    week_ranges = []
+    current_week_days = []
+    for d in days:
+        current_week_days.append(d)
+        if date(year, month, d).weekday() == 6:  # Sunday
+            week_ranges.append(current_week_days)
+            current_week_days = []
+    if current_week_days:
+        week_ranges.append(current_week_days)
+
     comp_offs = CompOffRecord.objects.filter(user=request.user).order_by('-worked_date')
     prev_m = (current.replace(day=1) - timedelta(days=1)).replace(day=1)
     next_m = (current.replace(day=28) + timedelta(days=4)).replace(day=1)
@@ -663,6 +677,7 @@ def timesheet_view(request):
         'prev_year': prev_m.year, 'prev_month': prev_m.month,
         'next_year': next_m.year, 'next_month': next_m.month,
         'today': today,
+        'week_ranges': week_ranges,
         'summary': {
             'work_days': work_days_count,
             'present': present_count,

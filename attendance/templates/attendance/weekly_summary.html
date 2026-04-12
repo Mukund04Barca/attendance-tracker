@@ -7,9 +7,11 @@
 {% block extra_head %}
 <style>
   .week-hero {
-    background: linear-gradient(135deg, rgba(37, 99, 235, 0.12) 0%, rgba(52, 211, 153, 0.06) 100%);
-    border: 1px solid rgba(37, 99, 235, 0.2);
-    border-radius: 18px;
+    background: var(--bg-glass);
+    backdrop-filter: blur(16px);
+    -webkit-backdrop-filter: blur(16px);
+    border: 1px solid var(--border);
+    border-radius: 20px;
     padding: 24px 28px;
     margin-bottom: 24px;
     display: flex;
@@ -88,9 +90,10 @@
   .target-bar-fill {
     height: 100%;
     border-radius: 6px;
-    background: linear-gradient(90deg, #2563eb, #34d399);
+    background: linear-gradient(90deg, var(--accent), #34d399);
     transition: width 1s cubic-bezier(0.25, 1, 0.5, 1);
-    box-shadow: 0 0 12px rgba(52, 211, 153, 0.4);
+    box-shadow: 0 0 15px var(--accent-shadow);
+    width: var(--wpct, 0%);
   }
 
   /* Day cards row */
@@ -102,8 +105,10 @@
   }
 
   .day-card {
-    background: #080f1e;
-    border: 1px solid rgba(255, 255, 255, 0.07);
+    background: var(--bg-glass);
+    backdrop-filter: blur(8px);
+    -webkit-backdrop-filter: blur(8px);
+    border: 1px solid var(--border);
     border-radius: 14px;
     padding: 14px 12px;
     text-align: center;
@@ -217,8 +222,10 @@
 
   /* Detail table */
   .detail-table-wrap {
-    background: #080f1e;
-    border: 1px solid rgba(255, 255, 255, 0.07);
+    background: var(--bg-glass);
+    backdrop-filter: blur(12px);
+    -webkit-backdrop-filter: blur(12px);
+    border: 1px solid var(--border);
     border-radius: 16px;
     overflow: hidden;
   }
@@ -305,7 +312,7 @@
   </div>
   <div class="target-bar-track">
     {% widthratio summary.weekly_total weekly_target 100 as wpct %}
-    <div class="target-bar-fill" style="width:{% if wpct > 100 %}100{% else %}{{ wpct }}{% endif %}%"></div>
+    <div class="target-bar-fill" style="--wpct: {% if wpct > 100 %}100{% else %}{{ wpct|default:0 }}{% endif %}%;"></div>
   </div>
 </div>
 
