@@ -317,12 +317,17 @@
     <div class="day-card-glow"></div>
     <div class="day-name">{{ row.date|date:"D" }}</div>
     <div class="day-date">{{ row.date|date:"d M" }}</div>
-    {% if row.is_holiday %}
+    {% if row.leave_type %}
+    <div class="day-hours" style="color:#ef4444;font-size:0.9rem;">LEAVE</div>
+    <div class="day-badge" style="background:rgba(239,68,68,0.1);color:#ef4444;border:1px solid rgba(239,68,68,0.2);">Leave Day</div>
+    {% elif row.is_holiday %}
     <div class="day-hours amber">🏖</div>
     <div class="day-badge holiday">Holiday</div>
+    {% elif row.date|date:"D" == "Sat" or row.date|date:"D" == "Sun" %}
+    <div class="day-hours muted" style="font-size:0.8rem;">OFF</div>
+    <div class="day-badge" style="color:#475569;border:1px solid rgba(71,85,105,0.2);">Weekend</div>
     {% elif row.check_in_time %}
-    <div class="day-hours {% if row.total_with_allowance >= 9 %}green{% else %}blue{% endif %}">{{
-      row.total_with_allowance|floatformat:1 }}h</div>
+    <div class="day-hours {% if row.total_with_allowance >= 9 %}green{% else %}blue{% endif %}">{{ row.total_with_allowance|floatformat:1 }}h</div>
     <div class="day-times">
       {{ row.check_in_time }}<br>{{ row.check_out_time }}
     </div>
@@ -362,8 +367,12 @@
           <td>{{ row.date|date:"d M Y" }}</td>
           <td style="color:#64748b;">{{ row.date|date:"D" }}</td>
           <td>
-            {% if row.is_holiday %}
+            {% if row.leave_type %}
+            <span class="badge bg-danger" style="font-size:0.65rem;background:#ef4444 !important;">Leave</span>
+            {% elif row.is_holiday %}
             <span class="badge bg-danger" style="font-size:0.65rem;">Holiday</span>
+            {% elif row.date|date:"D" == "Sat" or row.date|date:"D" == "Sun" %}
+            <span style="color:#64748b;font-size:0.75rem;">Weekend</span>
             {% elif row.check_in_time %}
             {% if row.total_with_allowance >= 9 %}
             <span style="color:#34d399;font-size:0.75rem;font-weight:600;">✓ Met</span>

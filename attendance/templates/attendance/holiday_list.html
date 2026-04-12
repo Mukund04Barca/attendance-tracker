@@ -228,11 +228,18 @@
     {% for h in holidays %}
     <div class="holiday-row">
       <div class="holiday-icon">🏖</div>
-      <div>
+      <div style="flex-grow:1;">
         <div class="holiday-name">{{ h.name }}</div>
         <div class="holiday-date-str">{{ h.date|date:"l" }}</div>
       </div>
       <div class="holiday-date-badge">{{ h.date|date:"d M Y" }}</div>
+      {% if user.is_staff %}
+      <form method="post" onsubmit="return confirm('Delete this holiday?');" style="margin-left:8px;">
+        {% csrf_token %}
+        <input type="hidden" name="delete_holiday" value="{{ h.id }}" />
+        <button type="submit" style="background:rgba(239,68,68,0.1);border:1px solid rgba(239,68,68,0.3);color:#ef4444;border-radius:6px;padding:4px 8px;font-size:0.65rem;cursor:pointer;">✕</button>
+      </form>
+      {% endif %}
     </div>
     {% endfor %}
     {% else %}

@@ -1,0 +1,333 @@
+
+<style>
+  * { box-sizing: border-box; margin: 0; padding: 0; }
+  :root {
+    --col-w: 52px;
+    --row-h: 40px;
+    --header-col: 260px;
+    --accent: #1D9E75;
+    --accent-light: #E1F5EE;
+    --weekend-bg: rgba(186,117,23,0.08);
+    --leave-color: #D85A30;
+    --sat-color: #BA7517;
+    --sun-color: #E24B4A;
+    --holiday-color: #1D9E75;
+  }
+  .ts-root { font-family: var(--font-sans, system-ui); width: 100%; padding: 0 0 2rem; }
+  .ts-header { padding: 1rem 1.25rem 0.75rem; display: flex; align-items: center; justify-content: space-between; flex-wrap: wrap; gap: 8px; }
+  .ts-title { font-size: 18px; font-weight: 500; color: var(--color-text-primary); }
+  .ts-subtitle { font-size: 12px; color: var(--color-text-secondary); margin-top: 2px; }
+  .ts-controls { display: flex; align-items: center; gap: 8px; flex-wrap: wrap; }
+  .month-nav { display: flex; align-items: center; gap: 6px; }
+  .nav-btn { width: 28px; height: 28px; border: 0.5px solid var(--color-border-tertiary); border-radius: var(--border-radius-md); background: var(--color-background-primary); color: var(--color-text-primary); cursor: pointer; display: flex; align-items: center; justify-content: center; font-size: 13px; }
+  .nav-btn:hover { background: var(--color-background-secondary); }
+  .month-label { font-size: 14px; font-weight: 500; color: var(--color-text-primary); min-width: 110px; text-align: center; }
+  .week-pills { display: flex; gap: 4px; }
+  .week-pill { padding: 4px 10px; border-radius: 20px; font-size: 11px; font-weight: 500; border: 0.5px solid var(--color-border-tertiary); background: var(--color-background-primary); color: var(--color-text-secondary); cursor: pointer; }
+  .week-pill.active { background: var(--accent-light); border-color: var(--accent); color: var(--accent); }
+  .legend { display: flex; gap: 12px; padding: 0 1.25rem 0.75rem; flex-wrap: wrap; }
+  .legend-item { display: flex; align-items: center; gap: 5px; font-size: 11px; color: var(--color-text-secondary); }
+  .legend-dot { width: 8px; height: 8px; border-radius: 50%; }
+  .ts-wrapper { overflow-x: auto; border: 0.5px solid var(--color-border-tertiary); border-radius: var(--border-radius-lg); }
+  .ts-table { border-collapse: collapse; width: max-content; min-width: 100%; }
+  .ts-table td, .ts-table th { border: 0.5px solid var(--color-border-tertiary); }
+  .fixed-col { position: sticky; left: 0; z-index: 10; background: var(--color-background-primary); }
+  .fixed-col-2 { position: sticky; left: 32px; z-index: 10; background: var(--color-background-primary); }
+  .fixed-col-3 { position: sticky; left: 200px; z-index: 10; background: var(--color-background-primary); }
+  .fixed-col-4 { position: sticky; left: 232px; z-index: 10; background: var(--color-background-primary); }
+  .day-header { width: var(--col-w); min-width: var(--col-w); text-align: center; padding: 0; vertical-align: top; }
+  .day-num { font-size: 13px; font-weight: 500; color: var(--color-text-primary); padding: 6px 4px 2px; display: block; }
+  .day-label { font-size: 10px; color: var(--color-text-tertiary); padding-bottom: 4px; display: block; letter-spacing: 0.04em; }
+  .day-badge { font-size: 9px; font-weight: 500; padding: 1px 5px; border-radius: 8px; display: inline-block; margin-bottom: 4px; }
+  .badge-sat { background: rgba(186,117,23,0.15); color: var(--sat-color); }
+  .badge-sun { background: rgba(226,75,74,0.12); color: var(--sun-color); }
+  .badge-hol { background: rgba(29,158,117,0.15); color: var(--holiday-color); }
+  .weekend-col { background: var(--weekend-bg) !important; }
+  .today-col { background: rgba(29,158,117,0.06) !important; }
+  .today-col .day-num { color: var(--accent); }
+  .info-row td { height: var(--row-h); text-align: center; font-size: 12px; }
+  .info-row .row-label { font-size: 11px; color: var(--color-text-tertiary); text-align: left; padding: 0 10px; letter-spacing: 0.05em; text-transform: uppercase; font-weight: 500; }
+  .time-in { color: var(--accent); font-weight: 500; font-size: 12px; }
+  .time-out { color: #378ADD; font-weight: 500; font-size: 12px; }
+  .total-val { color: var(--color-text-primary); font-weight: 500; font-size: 12px; }
+  .esa-val { color: var(--accent); font-weight: 500; font-size: 13px; }
+  .esa-row { background: var(--color-background-secondary); }
+  .esa-row td { height: 36px; }
+  .leave-text { color: var(--leave-color); font-weight: 600; font-size: 11px; }
+  .dash { color: var(--color-text-tertiary); font-size: 11px; }
+  .section-label { font-size: 10px; text-transform: uppercase; letter-spacing: 0.06em; font-weight: 500; color: var(--color-text-tertiary); padding: 8px 10px 4px; }
+  .activity-row td { height: 44px; }
+  .activity-row:hover td { background: var(--color-background-secondary) !important; }
+  .act-sr { font-size: 12px; color: var(--color-text-tertiary); text-align: center; width: 32px; min-width: 32px; }
+  .act-name { font-size: 12px; color: var(--color-text-primary); font-weight: 500; padding: 0 10px; min-width: 168px; max-width: 168px; }
+  .act-sub { font-size: 11px; color: var(--color-text-secondary); padding: 0 8px; min-width: 32px; }
+  .act-id { font-size: 11px; color: var(--color-text-secondary); min-width: 28px; max-width: 28px; }
+  .act-hours { text-align: center; font-size: 13px; font-weight: 500; color: var(--accent); }
+  .act-hours.zero { color: var(--color-text-tertiary); font-size: 11px; }
+  .act-total { text-align: center; font-size: 13px; font-weight: 500; color: var(--accent); border-left: 1.5px solid var(--color-border-tertiary); }
+  .totals-row td { height: 36px; background: var(--color-background-secondary); font-size: 12px; font-weight: 500; text-align: center; color: var(--color-text-secondary); }
+  .totals-row .act-total { color: var(--accent); font-size: 13px; }
+  .add-row { cursor: pointer; }
+  .add-row td { color: var(--color-text-tertiary); font-size: 12px; padding: 8px 10px; text-align: center; }
+  .add-row:hover td { background: var(--color-background-secondary) !important; color: var(--accent); }
+  .cat-tag { display: inline-block; padding: 2px 7px; border-radius: 10px; font-size: 10px; font-weight: 500; margin-bottom: 2px; }
+  .cat-dev { background: rgba(83,74,183,0.12); color: #534AB7; }
+  .cat-sup { background: rgba(29,158,117,0.12); color: #1D9E75; }
+  .cat-test { background: rgba(186,117,23,0.12); color: #BA7517; }
+  .cat-meet { background: rgba(212,83,126,0.12); color: #D4537E; }
+  .sub-name { font-size: 11px; color: var(--color-text-secondary); }
+  .id-chip { font-size: 9px; color: var(--color-text-tertiary); font-family: var(--font-mono); background: var(--color-background-secondary); padding: 1px 5px; border-radius: 4px; display: inline-block; margin-top: 1px; }
+  .ts-footer { padding: 0.75rem 1.25rem 0; display: flex; gap: 12px; justify-content: flex-end; flex-wrap: wrap; }
+  .btn-save { padding: 7px 18px; background: var(--accent); color: white; border: none; border-radius: var(--border-radius-md); font-size: 13px; font-weight: 500; cursor: pointer; }
+  .btn-save:hover { opacity: 0.9; }
+  .btn-cancel { padding: 7px 16px; background: var(--color-background-primary); color: var(--color-text-secondary); border: 0.5px solid var(--color-border-tertiary); border-radius: var(--border-radius-md); font-size: 13px; cursor: pointer; }
+  .btn-cancel:hover { background: var(--color-background-secondary); }
+  .summary-cards { display: flex; gap: 10px; padding: 0.75rem 1.25rem; flex-wrap: wrap; }
+  .scard { flex: 1; min-width: 90px; background: var(--color-background-secondary); border-radius: var(--border-radius-md); padding: 10px 14px; }
+  .scard-label { font-size: 11px; color: var(--color-text-tertiary); text-transform: uppercase; letter-spacing: 0.05em; }
+  .scard-val { font-size: 20px; font-weight: 500; color: var(--color-text-primary); margin-top: 2px; }
+  .scard-val.green { color: var(--accent); }
+  .scard-val.blue { color: #378ADD; }
+  .scard-val.amber { color: #BA7517; }
+</style>
+
+<div class="ts-root">
+  <h2 class="sr-only">Monthly timesheet with day-by-day activity logging, in/out times, and ESA hours.</h2>
+  <div class="ts-header">
+    <div>
+      <div class="ts-title">Timesheet</div>
+      <div class="ts-subtitle">Attendance Management System</div>
+    </div>
+    <div class="ts-controls">
+      <div class="week-pills" id="weekPills"></div>
+      <div class="month-nav">
+        <button class="nav-btn" onclick="changeMonth(-1)">&#8592;</button>
+        <div class="month-label" id="monthLabel"></div>
+        <button class="nav-btn" onclick="changeMonth(1)">&#8594;</button>
+      </div>
+    </div>
+  </div>
+  <div class="legend">
+    <div class="legend-item"><div class="legend-dot" style="background:#BA7517;"></div> Saturday — comp-off eligible</div>
+    <div class="legend-item"><div class="legend-dot" style="background:#E24B4A;"></div> Sunday — weekend</div>
+    <div class="legend-item"><div class="legend-dot" style="background:#1D9E75;"></div> Public holiday</div>
+  </div>
+  <div class="summary-cards" id="summaryCards"></div>
+  <div class="ts-wrapper">
+    <table class="ts-table" id="mainTable"></table>
+  </div>
+  <div class="ts-footer">
+    <button class="btn-cancel">Discard</button>
+    <button class="btn-save">Save Timesheet</button>
+  </div>
+</div>
+
+<script>
+const DAYS_WKD = ['SUN','MON','TUE','WED','THU','FRI','SAT'];
+const MONTHS = ['January','February','March','April','May','June','July','August','September','October','November','December'];
+
+let currentYear = 2025, currentMonth = 0;
+
+const SAMPLE_DATA = {
+  "6": { in: "09:23", out: "18:23" }, "7": { in: "09:16", out: "18:16" },
+  "8": { in: "09:45", out: "18:45" }, "9": { in: "09:45", out: "18:45" },
+  "10": { type: "LEAVE" }
+};
+const HOLIDAYS = { "14": "Republic Day" };
+const activities = [
+  { sr: 1, category: "Support", catClass: "cat-sup", sub: "Support KT", id: "artf1256215", hours: { "6": 3.0, "9": 3.0 } },
+  { sr: 2, category: "Development", catClass: "cat-dev", sub: "Development", id: "artf1256215", hours: { "6": 3.0, "10": 3.0 } },
+  { sr: 3, category: "Development", catClass: "cat-dev", sub: "Analysis", id: "artf1256215", hours: { "6": 2.0, "10": 3.0 } },
+  { sr: 4, category: "Development", catClass: "cat-dev", sub: "Testing", id: "defect2215", hours: { "7": 5.0, "8": 4.0 } },
+  { sr: 5, category: "Meeting", catClass: "cat-meet", sub: "Scrum", id: "artf1256215", hours: { "7": 1.0, "8": 2.0, "9": 3.0 } }
+];
+
+function getDaysInMonth(y, m) { return new Date(y, m + 1, 0).getDate(); }
+function getStartDay(y, m) { return new Date(y, m, 1).getDay(); }
+function isWeekend(d, y, m) { const day = new Date(y, m, d).getDay(); return day === 0 || day === 6; }
+function isSunday(d, y, m) { return new Date(y, m, d).getDay() === 0; }
+function isSaturday(d, y, m) { return new Date(y, m, d).getDay() === 6; }
+function isHoliday(d) { return !!HOLIDAYS[String(d)]; }
+function totalHours(dd) { if (!dd.in || !dd.out) return 0; const [ih,im]=dd.in.split(':').map(Number); const [oh,om]=dd.out.split(':').map(Number); return (oh*60+om-ih*60-im)/60; }
+
+function getWeeks(y, m) {
+  const n = getDaysInMonth(y, m); const weeks = []; let w = [];
+  for (let d = 1; d <= n; d++) {
+    w.push(d);
+    if (isSunday(d, y, m) || d === n) { weeks.push([...w]); w = []; }
+  }
+  return weeks;
+}
+
+let activeWeek = 0;
+let visibleDays = [];
+
+function setVisibleDays() {
+  const weeks = getWeeks(currentYear, currentMonth);
+  const pills = document.getElementById('weekPills');
+  pills.innerHTML = '';
+  weeks.forEach((wk, i) => {
+    const p = document.createElement('button');
+    p.className = 'week-pill' + (i === activeWeek ? ' active' : '');
+    p.textContent = 'W' + (i + 1);
+    p.onclick = () => { activeWeek = i; render(); };
+    pills.appendChild(p);
+  });
+  visibleDays = weeks[activeWeek] || weeks[0];
+}
+
+function render() {
+  document.getElementById('monthLabel').textContent = MONTHS[currentMonth] + ' ' + currentYear;
+  setVisibleDays();
+  renderSummary();
+  renderTable();
+}
+
+function renderSummary() {
+  const n = getDaysInMonth(currentYear, currentMonth);
+  let workDays = 0, present = 0, leaves = 0, totalESA = 0;
+  for (let d = 1; d <= n; d++) {
+    const key = String(d);
+    if (!isWeekend(d, currentYear, currentMonth) && !isHoliday(d)) workDays++;
+    const dd = SAMPLE_DATA[key];
+    if (dd) {
+      if (dd.type === 'LEAVE') leaves++;
+      else if (dd.in) { present++; totalESA += totalHours(dd); }
+    }
+  }
+  const actTotal = activities.reduce((s, a) => s + Object.values(a.hours).reduce((x, v) => x + v, 0), 0);
+  document.getElementById('summaryCards').innerHTML = `
+    <div class="scard"><div class="scard-label">Work days</div><div class="scard-val">${workDays}</div></div>
+    <div class="scard"><div class="scard-label">Present</div><div class="scard-val green">${present}</div></div>
+    <div class="scard"><div class="scard-label">Leaves</div><div class="scard-val amber">${leaves}</div></div>
+    <div class="scard"><div class="scard-label">ESA hours</div><div class="scard-val blue">${totalESA.toFixed(0)}</div></div>
+    <div class="scard"><div class="scard-label">Logged hrs</div><div class="scard-val green">${actTotal.toFixed(1)}</div></div>
+  `;
+}
+
+function renderTable() {
+  const days = visibleDays;
+  const tbl = document.getElementById('mainTable');
+  let html = '';
+
+  html += '<colgroup>';
+  html += '<col style="width:32px"><col style="width:168px"><col style="width:32px"><col style="width:28px">';
+  days.forEach(() => html += `<col style="width:${52}px">`);
+  html += '<col style="width:58px"></colgroup>';
+
+  html += '<thead><tr>';
+  html += `<th class="fixed-col act-sr" style="padding:8px 4px;vertical-align:bottom;font-size:10px;color:var(--color-text-tertiary);letter-spacing:.04em;">#</th>`;
+  html += `<th class="fixed-col-2 act-name" style="padding:8px 10px;font-size:10px;text-transform:uppercase;letter-spacing:.05em;color:var(--color-text-tertiary);vertical-align:bottom;">Activity</th>`;
+  html += `<th class="fixed-col-3 act-sub" style="font-size:10px;text-transform:uppercase;letter-spacing:.05em;color:var(--color-text-tertiary);vertical-align:bottom;text-align:center;">Sub</th>`;
+  html += `<th class="fixed-col-4 act-id" style="font-size:10px;color:var(--color-text-tertiary);vertical-align:bottom;text-align:center;padding:0 4px;">ID</th>`;
+
+  const today = new Date(); let todayD = 0;
+  if (today.getFullYear() === currentYear && today.getMonth() === currentMonth) todayD = today.getDate();
+
+  days.forEach(d => {
+    const isSun = isSunday(d, currentYear, currentMonth);
+    const isSat = isSaturday(d, currentYear, currentMonth);
+    const isHol = isHoliday(d);
+    const isToday = d === todayD;
+    const wkLabel = DAYS_WKD[new Date(currentYear, currentMonth, d).getDay()];
+    let badge = '';
+    if (isHol) badge = `<span class="day-badge badge-hol">HOL</span>`;
+    else if (isSat) badge = `<span class="day-badge badge-sat">SAT</span>`;
+    else if (isSun) badge = `<span class="day-badge badge-sun">SUN</span>`;
+    const cls = isToday ? 'today-col' : ((isSat || isSun || isHol) ? 'weekend-col' : '');
+    html += `<th class="day-header ${cls}" style="background:${cls?'':''};"><span class="day-num">${d}</span><span class="day-label">${wkLabel}</span>${badge}</th>`;
+  });
+  html += `<th style="font-size:10px;text-transform:uppercase;letter-spacing:.05em;color:var(--color-text-tertiary);vertical-align:bottom;text-align:center;padding:6px 4px;">Total</th>`;
+  html += '</tr></thead>';
+
+  html += '<tbody>';
+
+  const inRow = (label, key, cls) => {
+    let r = `<tr class="info-row"><td class="fixed-col row-label">${label}</td><td class="fixed-col-2" colspan="3"></td>`;
+    days.forEach(d => {
+      const dk = String(d); const dd = SAMPLE_DATA[dk]; const isSun = isSunday(d,currentYear,currentMonth); const isSat = isSaturday(d,currentYear,currentMonth); const isHol = isHoliday(d);
+      const bg = (isSat||isSun||isHol) ? 'weekend-col' : '';
+      let val = '<span class="dash">—</span>';
+      if (dd) {
+        if (dd.type === 'LEAVE') val = `<span class="leave-text">LEAVE</span>`;
+        else if (dd[key]) val = `<span class="${cls}">${dd[key]}</span>`;
+        else val = '<span class="dash">—</span>';
+      } else if (!isSun && !isSat && !isHol) val = '<span class="dash" style="font-size:10px;">--</span>';
+      r += `<td class="${bg}" style="text-align:center;">${val}</td>`;
+    });
+    r += `<td></td></tr>`;
+    return r;
+  };
+
+  html += inRow('In time', 'in', 'time-in');
+  html += inRow('Out time', 'out', 'time-out');
+
+  html += '<tr class="info-row"><td class="fixed-col row-label">Total time</td><td class="fixed-col-2" colspan="3"></td>';
+  let grandTotal = 0;
+  days.forEach(d => {
+    const dk = String(d); const dd = SAMPLE_DATA[dk]; const isSun = isSunday(d,currentYear,currentMonth); const isSat = isSaturday(d,currentYear,currentMonth); const isHol = isHoliday(d);
+    const bg = (isSat||isSun||isHol) ? 'weekend-col' : '';
+    let val = '<span class="dash">—</span>';
+    if (dd && dd.in && dd.out) { const h = totalHours(dd); grandTotal += h; const hh = String(Math.floor(h)).padStart(2,'0'); const mm = String(Math.round((h%1)*60)).padStart(2,'0'); val = `<span class="total-val">${hh}:${mm}</span>`; }
+    else if (dd && dd.type === 'LEAVE') val = '<span class="dash" style="font-size:10px;">—</span>';
+    else if (!isSun && !isSat && !isHol) val = '<span class="dash" style="font-size:10px;">--</span>';
+    html += `<td class="${bg}" style="text-align:center;">${val}</td>`;
+  });
+  html += `<td style="text-align:center;font-size:12px;font-weight:500;color:var(--color-text-primary);">${Math.floor(grandTotal).toString().padStart(2,'0')}:${String(Math.round((grandTotal%1)*60)).padStart(2,'0')}</td></tr>`;
+
+  html += '<tr class="info-row esa-row"><td class="fixed-col row-label" style="color:var(--accent);">ESA time</td><td class="fixed-col-2" colspan="3"></td>';
+  let esaTotal = 0;
+  days.forEach(d => {
+    const dk = String(d); const dd = SAMPLE_DATA[dk]; const isSun = isSunday(d,currentYear,currentMonth); const isSat = isSaturday(d,currentYear,currentMonth); const isHol = isHoliday(d);
+    const bg = (isSat||isSun||isHol) ? 'weekend-col' : '';
+    let val = '<span class="dash" style="font-size:10px;">—</span>';
+    if (dd && dd.in && dd.out) { const h = totalHours(dd); esaTotal += h; val = `<span class="esa-val">${h.toFixed(1)}</span>`; }
+    else if (dd && dd.type === 'LEAVE') val = `<span class="esa-val" style="color:var(--leave-color);">0</span>`;
+    else if (!isSun && !isSat && !isHol) val = '<span class="dash" style="font-size:10px;color:var(--color-text-tertiary);">0</span>';
+    html += `<td class="${bg}" style="text-align:center;">${val}</td>`;
+  });
+  html += `<td style="text-align:center;" class="esa-val">${esaTotal.toFixed(1)}</td></tr>`;
+
+  html += `<tr><td colspan="${days.length + 5}" style="padding:4px 0;background:var(--color-background-secondary);"><span class="section-label">Activities</span></td></tr>`;
+
+  activities.forEach(act => {
+    const dayTotal = Object.values(act.hours).reduce((s,v)=>s+v,0);
+    html += `<tr class="activity-row"><td class="fixed-col act-sr">${act.sr}</td>`;
+    html += `<td class="fixed-col-2 act-name"><span class="cat-tag ${act.catClass}">${act.category}</span></td>`;
+    html += `<td class="fixed-col-3 act-sub" style="text-align:center;"><span class="sub-name">${act.sub}</span></td>`;
+    html += `<td class="fixed-col-4 act-id"><span class="id-chip">${act.id.replace('artf','').replace('defect','d')}</span></td>`;
+    days.forEach(d => {
+      const dk = String(d); const isSun = isSunday(d,currentYear,currentMonth); const isSat = isSaturday(d,currentYear,currentMonth); const isHol = isHoliday(d);
+      const bg = (isSat||isSun||isHol) ? 'weekend-col' : '';
+      const h = act.hours[dk];
+      html += `<td class="${bg} act-hours${h ? '' : ' zero'}">${h ? h.toFixed(1) : ((!isSun&&!isSat&&!isHol) ? '0' : '')}</td>`;
+    });
+    html += `<td class="act-total">${dayTotal.toFixed(1)}</td></tr>`;
+  });
+
+  html += `<tr class="totals-row"><td class="fixed-col" style="text-align:left;padding:0 10px;font-size:10px;text-transform:uppercase;letter-spacing:.05em;">Day total</td><td class="fixed-col-2" colspan="3"></td>`;
+  days.forEach(d => {
+    const dk = String(d); const isSun = isSunday(d,currentYear,currentMonth); const isSat = isSaturday(d,currentYear,currentMonth); const isHol = isHoliday(d);
+    const bg = (isSat||isSun||isHol) ? 'weekend-col' : '';
+    const tot = activities.reduce((s,a) => s + (a.hours[dk] || 0), 0);
+    html += `<td class="${bg}" style="text-align:center;font-size:12px;font-weight:500;color:${tot>0?'var(--accent)':'var(--color-text-tertiary)'};">${tot > 0 ? tot.toFixed(1) : '0'}</td>`;
+  });
+  const grandActTotal = activities.reduce((s,a) => s + Object.values(a.hours).reduce((x,v)=>x+v,0), 0);
+  html += `<td class="act-total">${grandActTotal.toFixed(1)}</td></tr>`;
+
+  html += `<tr class="add-row"><td colspan="${days.length + 5}">+ Add activity row</td></tr>`;
+  html += '</tbody>';
+
+  tbl.innerHTML = html;
+}
+
+function changeMonth(dir) {
+  currentMonth += dir;
+  if (currentMonth > 11) { currentMonth = 0; currentYear++; }
+  if (currentMonth < 0) { currentMonth = 11; currentYear--; }
+  activeWeek = 0;
+  render();
+}
+
+render();
+</script>

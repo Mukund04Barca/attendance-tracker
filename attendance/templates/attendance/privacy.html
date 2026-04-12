@@ -1,0 +1,33 @@
+{% extends "base.html" %}
+
+{% block title %}Privacy Policy | [WEBSITE NAME]{% endblock %}
+{% block header_title %}Privacy Policy{% endblock %}
+
+{% block content %}
+<div class="card" style="max-width: 800px; margin: 0 auto;">
+  <div class="card-body" style="color: var(--text); line-height: 1.6;">
+    <h2 style="font-weight: 800; margin-bottom: 20px;">Privacy Policy</h2>
+    <p>Last updated: {% now "Y-m-d" %}</p>
+
+    <p>Welcome to <strong>[APP NAME]</strong>, operated by <strong>[WEBSITE NAME]</strong>. We are committed to protecting your personal information and your right to privacy.</p>
+
+    <h4 style="margin-top: 30px;">1. Information We Collect</h4>
+    <p>We collect personal information that you provide to us when registering at the Services, expressing an interest in obtaining information about us or our products and services.</p>
+
+    <h4 style="margin-top: 30px;">2. How We Use Your Information</h4>
+    <p>We use the information we collect or receive to facilitate the account creation and logon process, to send administrative information to you, and for internal reporting purposes.</p>
+
+    <h4 style="margin-top: 30px;">3. Will Your Information Be Shared With Anyone?</h4>
+    <p>We only share information with your consent, to comply with laws, to provide you with services, to protect your rights, or to fulfill business obligations.</p>
+
+    <h4 style="margin-top: 30px;">4. Contact Us</h4>
+    <p>If you have questions or comments about this notice, you may email us at <strong>[SUPPORT EMAIL]</strong> or by post to:</p>
+    <address style="margin-top: 10px; font-style: normal; color: var(--muted);">
+      [WEBSITE NAME]<br>
+      [ADDRESS LINE 1]<br>
+      [ADDRESS LINE 2]<br>
+      [COUNTRY]
+    </address>
+  </div>
+</div>
+{% endblock %}

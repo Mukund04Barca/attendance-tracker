@@ -54,11 +54,22 @@
   }
 
   /* ── Calendar grid ── */
-  .cal-grid-wrap {
+  .cal-grid-outer {
+    width: 100%;
+    overflow-x: auto;
+    -webkit-overflow-scrolling: touch;
+    scrollbar-width: none;
     background: #080f1e;
     border: 1px solid rgba(255, 255, 255, 0.07);
     border-radius: 18px;
-    overflow: hidden;
+  }
+  
+  .cal-grid-outer::-webkit-scrollbar {
+    display: none;
+  }
+
+  .cal-grid-wrap {
+    min-width: 600px;
   }
 
   .cal-head {
@@ -441,6 +452,7 @@
 </div>
 
 <!-- ── Calendar grid ── -->
+<div class="cal-grid-outer">
 <div class="cal-grid-wrap">
   <div class="cal-head">
     <div class="cal-head-cell">Sun</div>
@@ -479,17 +491,23 @@
       <!-- Record data -->
       {% if cell.record %}
       <div class="cal-record">
-        {% if cell.record.check_in or cell.record.check_out %}
-        <div class="cal-time-row">
-          <span class="cal-time-in">{{ cell.record.check_in|default:"—" }}</span>
-          <span class="cal-time-sep">›</span>
-          <span class="cal-time-out">{{ cell.record.check_out|default:"—" }}</span>
+        {% if cell.record.is_leave %}
+        <div class="cal-time-row" style="margin-top:6px;">
+          <span style="background:rgba(239,68,68,0.1);color:#ef4444;font-size:0.6rem;padding:2px 6px;border-radius:4px;font-weight:700;letter-spacing:1px;text-transform:uppercase;border:1px solid rgba(239,68,68,0.2);">LEAVE</span>
         </div>
-        {% endif %}
-        {% if cell.record.hours %}
-        <div class="cal-hours {% if cell.record.hours >= 9 %}green{% endif %}">
-          {{ cell.record.hours }}h
-        </div>
+        {% else %}
+          {% if cell.record.check_in or cell.record.check_out %}
+          <div class="cal-time-row">
+            <span class="cal-time-in">{{ cell.record.check_in|default:"—" }}</span>
+            <span class="cal-time-sep">›</span>
+            <span class="cal-time-out">{{ cell.record.check_out|default:"—" }}</span>
+          </div>
+          {% endif %}
+          {% if cell.record.hours %}
+          <div class="cal-hours {% if cell.record.hours >= 9 %}green{% endif %}">
+            {{ cell.record.hours }}h
+          </div>
+          {% endif %}
         {% endif %}
 
         {% if cell.is_current_month %}
@@ -507,6 +525,7 @@
     {% endfor %}
   </div>
 </div>
+</div>
 
 <!-- ══════════ EDIT MODAL ══════════ -->
 <div id="editModal" class="edit-modal-overlay" onclick="if(event.target===this)closeEditModal()">
@@ -520,16 +539,19 @@
       <div class="modal-body">
         <div class="modal-field">
           <label class="modal-label">Check-in time</label>
-          <input type="time" name="check_in" id="editCheckIn" class="modal-input" />
+          <input type="text" name="check_in" id="editCheckIn" class="modal-input time-entry-mask" placeholder="HH:mm" />
         </div>
         <div class="modal-field">
           <label class="modal-label">Check-out time</label>
-          <input type="time" name="check_out" id="editCheckOut" class="modal-input" />
+          <input type="text" name="check_out" id="editCheckOut" class="modal-input time-entry-mask" placeholder="HH:mm" />
         </div>
       </div>
-      <div class="modal-footer">
-        <button type="button" class="modal-btn-cancel" onclick="closeEditModal()">Cancel</button>
-        <button type="submit" class="modal-btn-save">💾 Save Record</button>
+      <div class="modal-footer" style="justify-content:space-between;">
+        <button type="submit" name="mark_leave" value="true" class="modal-btn-cancel" style="color:#ef4444;border-color:rgba(239,68,68,0.3);background:rgba(239,68,68,0.05);margin-right:auto;">🏝 Mark Leave</button>
+        <div style="display:flex;gap:10px;">
+          <button type="button" class="modal-btn-cancel" onclick="closeEditModal()">Cancel</button>
+          <button type="submit" class="modal-btn-save">💾 Save Record</button>
+        </div>
       </div>
     </form>
   </div>
@@ -549,6 +571,17 @@
     document.getElementById('editModal').classList.remove('open');
   }
   document.addEventListener('keydown', function (e) { if (e.key === 'Escape') closeEditModal(); });
+  // Time entry mask
+  document.addEventListener('input', function(e) {
+    if (e.target.classList.contains('time-entry-mask')) {
+      let val = e.target.value.replace(/\D/g, '');
+      if (val.length > 2) {
+        e.target.value = val.slice(0, 2) + ':' + val.slice(2, 4);
+      } else {
+        e.target.value = val;
+      }
+    }
+  });
 </script>
 
 {% endblock %}

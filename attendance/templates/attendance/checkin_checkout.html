@@ -25,18 +25,72 @@
     margin-bottom: 20px;
   }
 
-  /* ── Workspace hero card ── */
-  .workspace-card {
-    background: linear-gradient(135deg, #0d1b3e 0%, #0a1628 60%, #050e1f 100%);
-    border: 1px solid rgba(96, 165, 250, 0.15);
+  /* ── Stats cards ── */
+  .stat-card {
+    background: #0f172a;
+    border: 1px solid rgba(255,255,255,0.06);
     border-radius: 16px;
-    padding: 20px 24px;
+    padding: 20px;
+    transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
     position: relative;
     overflow: hidden;
-    min-height: 260px;
+  }
+
+  .stat-card:hover {
+    transform: translateY(-5px) scale(1.02);
+    border-color: rgba(96,165,250,0.2);
+    box-shadow: 0 10px 30px rgba(0,0,0,0.4);
+    background: #111a2e;
+  }
+
+  .stat-card::after {
+    content: "";
+    position: absolute;
+    top: 0;
+    right: 0;
+    width: 80px;
+    height: 80px;
+    background: radial-gradient(circle at 100% 0%, rgba(37,99,235,0.05) 0%, transparent 70%);
+    pointer-events: none;
+  }
+  .workspace-card {
+    background: radial-gradient(circle at top right, rgba(37,99,235,0.15) 0%, transparent 60%),
+                radial-gradient(circle at bottom left, rgba(52,211,153,0.06) 0%, transparent 40%),
+                #0a1628;
+    border: 1px solid rgba(255,255,255,0.08);
+    border-radius: 20px;
+    padding: 32px;
+    position: relative;
+    overflow: hidden;
+    min-height: 280px;
     display: flex;
     flex-direction: column;
-    justify-content: space-between;
+    justify-content: center;
+    box-shadow: 0 20px 50px rgba(0,0,0,0.5);
+  }
+
+  .workspace-title {
+    font-size: 2.4rem;
+    font-weight: 800;
+    line-height: 1.1;
+    letter-spacing: -1.5px;
+    margin-bottom: 20px;
+    max-width: 500px;
+  }
+
+  .workspace-title span {
+    background: linear-gradient(135deg, #60a5fa, #34d399);
+    -webkit-background-clip: text;
+    background-clip: text;
+    -webkit-text-fill-color: transparent;
+  }
+
+  .workspace-desc {
+    color: #94a3b8;
+    font-size: 0.95rem;
+    line-height: 1.6;
+    margin-bottom: 30px;
+    max-width: 420px;
   }
 
   .workspace-card::before {
@@ -144,15 +198,56 @@
   }
 
   @keyframes screenFlicker {
+    0%, 100% { background: linear-gradient(135deg, #0d2b4a, #1a3f6b); }
+    50% { background: linear-gradient(135deg, #0f3258, #1e4a7e); }
+  }
 
-    0%,
-    100% {
-      background: linear-gradient(135deg, #0d2b4a, #1a3f6b);
-    }
+  .hero-btn {
+    border: none;
+    color: #fff;
+    padding: 14px 32px;
+    border-radius: 12px;
+    font-size: 1rem;
+    font-weight: 700;
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+    cursor: pointer;
+  }
 
-    50% {
-      background: linear-gradient(135deg, #0f3258, #1e4a7e);
-    }
+  .btn-primary-glow {
+    background: linear-gradient(135deg, #2563eb, #3b82f6);
+    box-shadow: 0 10px 30px rgba(37, 99, 235, 0.4);
+  }
+
+  .btn-primary-glow:hover {
+    transform: translateY(-2px);
+    box-shadow: 0 15px 40px rgba(37, 99, 235, 0.6);
+  }
+
+  .btn-danger-glow {
+    background: rgba(239, 68, 68, 0.1);
+    border: 1px solid rgba(239, 68, 68, 0.3);
+    color: #f87171;
+  }
+
+  .btn-danger-glow:hover {
+    background: rgba(239, 68, 68, 0.2);
+    transform: translateY(-2px);
+  }
+
+  .status-complete {
+    background: rgba(16, 185, 129, 0.08);
+    border: 1px solid rgba(16, 185, 129, 0.2);
+    color: #34d399;
+    padding: 12px 24px;
+    border-radius: 12px;
+    font-size: 0.95rem;
+    font-weight: 600;
+    display: flex;
+    align-items: center;
+    gap: 10px;
   }
 
   /* Keyboard */
@@ -289,7 +384,10 @@
     margin-top: 8px;
   }
 
-  .ws-stat {}
+  .ws-stat {
+    display: flex;
+    flex-direction: column;
+  }
 
   .ws-stat-label {
     font-size: 0.68rem;
@@ -445,9 +543,10 @@
 
   .cmd-grid {
     display: grid;
-    grid-template-columns: repeat(4, 1fr);
+    grid-template-columns: repeat(5, 1fr);
     gap: 12px;
     margin-bottom: 20px;
+    /* allow horizontal scroll on parent if needed */
   }
 
   .cmd-card {
@@ -603,15 +702,17 @@
   }
 
   .btn-checkin {
-    background: #16a34a;
+    background: linear-gradient(135deg, #10b981, #059669);
     border: none;
     color: #fff;
+    box-shadow: 0 4px 12px rgba(16, 185, 129, 0.3);
   }
 
   .btn-checkout {
-    background: #dc2626;
+    background: linear-gradient(135deg, #ef4444, #dc2626);
     border: none;
     color: #fff;
+    box-shadow: 0 4px 12px rgba(239, 68, 68, 0.3);
   }
 
   .btn-manual {
@@ -621,22 +722,32 @@
   }
 
   .roster-btn {
-    padding: 8px 20px;
-    border-radius: 8px;
-    font-size: 0.82rem;
-    font-weight: 600;
+    padding: 10px 24px;
+    border-radius: 12px;
+    font-size: 0.85rem;
+    font-weight: 700;
     cursor: pointer;
-    transition: opacity 0.2s, transform 0.15s;
+    transition: all 0.2s cubic-bezier(0.4, 0, 0.2, 1);
     font-family: inherit;
+    flex: 1;
+    text-align: center;
   }
 
   .roster-btn:hover:not(:disabled) {
-    opacity: 0.85;
-    transform: translateY(-1px);
+    transform: translateY(-2px);
+    filter: brightness(1.1);
+    box-shadow: 0 6px 16px rgba(0, 0, 0, 0.3);
+  }
+
+  .roster-btn:active:not(:disabled) {
+    transform: translateY(0);
   }
 
   .roster-btn:disabled {
-    opacity: 0.3;
+    background: #1e293b;
+    color: #64748b;
+    border: 1px solid #334155;
+    box-shadow: none;
     cursor: not-allowed;
   }
 
@@ -702,19 +813,34 @@
     }
 
     .cmd-grid {
-      grid-template-columns: repeat(2, 1fr);
+      display: flex;
+      flex-wrap: nowrap;
+      overflow-x: auto;
+      padding-bottom: 8px;
+      -webkit-overflow-scrolling: touch;
+      scrollbar-width: none; /* Firefox */
+    }
+    
+    .cmd-grid::-webkit-scrollbar {
+      display: none; /* Safari and Chrome */
+    }
+
+    .cmd-card {
+      min-width: 140px;
+      flex: 0 0 auto;
     }
 
     .desk-scene {
       display: none;
     }
+    
+    .action-row {
+      flex-direction: row;
+      flex-wrap: nowrap;
+    }
   }
 
   @media (max-width: 560px) {
-    .cmd-grid {
-      grid-template-columns: 1fr 1fr;
-    }
-
     .status-grid {
       grid-template-columns: 1fr 1fr;
     }
@@ -737,32 +863,40 @@
   <div class="workspace-card">
     <div>
       <div class="live-badge">
-        <span class="live-dot"></span>
-        Live Attendance Status
-      </div>
-      <div class="ws-status">
-        <div class="ws-stat">
-          <div class="ws-stat-label">Check-in</div>
-          <div class="ws-stat-value {% if check_in_display %}checked-in{% else %}not-in{% endif %}">
-            {{ check_in_display|default:"—" }}
-          </div>
-        </div>
-        <div class="ws-stat">
-          <div class="ws-stat-label">Check-out</div>
-          <div class="ws-stat-value {% if check_out_display %}checked-out{% else %}not-in{% endif %}">
-            {{ check_out_display|default:"—" }}
-          </div>
-        </div>
-        {% if hours_today is not None %}
-        <div class="ws-stat">
-          <div class="ws-stat-label">Worked</div>
-          <div
-            class="ws-stat-value {% if hours_today >= daily_target_hours %}checked-in{% else %}checked-out{% endif %}">
-            {{ hours_today }}h
-          </div>
-        </div>
+        {% if is_leave %}
+        <span style="width:7px;height:7px;border-radius:50%;background:#ef4444;box-shadow:0 0 8px #ef4444;"></span>
+        🏝️ Leave Day
+        {% else %}
+        <div class="live-dot"></div>
+        Live Workspace
         {% endif %}
       </div>
+      <h1 class="workspace-title">Track your time with <span>precision.</span></h1>
+      <p class="workspace-desc">Stay productive, monitor your sessions, and manage your work-life balance effortlessly.</p>
+    </div>
+
+    <div class="d-flex gap-3 align-items-center mob-stack">
+      {% if not record.check_in %}
+      <form method="post" action="{% url 'checkin_checkout' %}">
+        {% csrf_token %}
+        <input type="hidden" name="action" value="check_in">
+        <button type="submit" class="hero-btn btn-primary-glow">
+          🚀 Check-in Now
+        </button>
+      </form>
+      {% elif not record.check_out %}
+      <form method="post" action="{% url 'checkin_checkout' %}">
+        {% csrf_token %}
+        <input type="hidden" name="action" value="check_out">
+        <button type="submit" class="hero-btn btn-danger-glow">
+          🚪 Check-out
+        </button>
+      </form>
+      {% else %}
+      <div class="status-complete">
+        ✨ Shifts completed for today!
+      </div>
+      {% endif %}
     </div>
 
     <!-- CSS Desk illustration -->
@@ -783,7 +917,12 @@
       <div class="coffee-steam"></div>
     </div>
 
-    {% if record.is_holiday %}
+    {% if is_leave %}
+    <span
+      style="position:absolute;top:18px;right:18px;background:rgba(239,68,68,0.15);border:1px solid rgba(239,68,68,0.35);color:#f87171;border-radius:8px;padding:3px 10px;font-size:0.72rem;font-weight:600;">
+      🏝 Leave Day
+    </span>
+    {% elif record.is_holiday %}
     <span
       style="position:absolute;top:18px;right:18px;background:rgba(245,158,11,0.15);border:1px solid rgba(245,158,11,0.35);color:#fbbf24;border-radius:8px;padding:3px 10px;font-size:0.72rem;font-weight:600;">
       🏖 Holiday
@@ -860,7 +999,7 @@
         </div>
         <div class="progress-bar">
           {% widthratio weekly_total weekly_target 100 as pct %}
-          <div class="progress-fill" style="width: {% if pct > 100 %}100{% else %}{{ pct }}{% endif %}%;"></div>
+          <div class="progress-fill" style="width: {{ pct }}%; max-width: 100%;"></div>
         </div>
       </div>
     </div>
@@ -905,6 +1044,21 @@
     </div>
   </a>
 
+  <a href="{% url 'timesheet' %}" class="cmd-card" style="border-color:rgba(52,211,153,0.15);">
+    <div class="cmd-card-icon" style="background:rgba(52,211,153,0.08);border-color:rgba(52,211,153,0.15);">🗂️</div>
+    <div>
+      <div class="cmd-card-name" style="color:#34d399;">Timesheet</div>
+      <div class="cmd-card-sub">Fill &amp; export monthly timesheet</div>
+    </div>
+  </a>
+
+  <a href="/static/app/attendance_tracker_v1.apk" class="cmd-card" style="border-color:rgba(96,165,250,0.3); background:rgba(37,99,235,0.05);" download>
+    <div class="cmd-card-icon" style="background:rgba(37,99,235,0.1); border-color:rgba(37,99,235,0.2);">📱</div>
+    <div>
+      <div class="cmd-card-name" style="color:#60a5fa;">Android App</div>
+      <div class="cmd-card-sub">Download APK for testing</div>
+    </div>
+  </a>
 </div>
 
 
@@ -920,7 +1074,9 @@
     </div>
   </div>
 
-  {% if record.check_in or record.check_out %}
+  {% if is_leave %}
+  <div class="no-record-msg" style="color:#f87171;font-weight:700;">🏖 You are on LEAVE today.</div>
+  {% elif record.check_in or record.check_out %}
   <!-- Timeline -->
   <div class="timeline">
     <div class="tl-point">
@@ -977,11 +1133,11 @@
     <div id="manual-row" class="manual-row" style="display:none;">
       <div>
         <label>Manual Check-in</label><br>
-        <input type="time" name="manual_check_in" />
+        <input type="time" name="manual_check_in" id="manual_ci" />
       </div>
       <div>
         <label>Manual Check-out</label><br>
-        <input type="time" name="manual_check_out" />
+        <input type="time" name="manual_check_out" id="manual_co" />
       </div>
       <button name="action" value="set_manual" class="roster-btn btn-checkin" style="margin-top:16px;">
         Save

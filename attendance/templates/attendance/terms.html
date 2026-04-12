@@ -1,0 +1,27 @@
+{% extends "base.html" %}
+
+{% block title %}Terms of Service | [WEBSITE NAME]{% endblock %}
+{% block header_title %}Terms of Service{% endblock %}
+
+{% block content %}
+<div class="card" style="max-width: 800px; margin: 0 auto;">
+  <div class="card-body" style="color: var(--text); line-height: 1.6;">
+    <h2 style="font-weight: 800; margin-bottom: 20px;">Terms of Service</h2>
+    <p>Last updated: {% now "Y-m-d" %}</p>
+
+    <p>Welcome to <strong>[APP NAME]</strong>! These terms and conditions outline the rules and regulations for the use of <strong>[WEBSITE NAME]</strong>'s Website, located at <strong>[WEBSITE URL]</strong>.</p>
+
+    <h4 style="margin-top: 30px;">1. Terms</h4>
+    <p>By accessing this Website, accessible from <strong>[WEBSITE URL]</strong>, you are agreeing to be bound by these Website Terms and Conditions of Use and agree that you are responsible for the agreement with any applicable local laws.</p>
+
+    <h4 style="margin-top: 30px;">2. Use License</h4>
+    <p>Permission is granted to temporarily download one copy of the materials on <strong>[WEBSITE NAME]</strong>'s Website for personal, non-commercial transitory viewing only.</p>
+
+    <h4 style="margin-top: 30px;">3. Disclaimer</h4>
+    <p>All the materials on <strong>[WEBSITE NAME]</strong>'s Website are provided "as is". <strong>[WEBSITE NAME]</strong> makes no warranties, may it be expressed or implied, therefore negates all other warranties.</p>
+
+    <h4 style="margin-top: 30px;">4. Contact</h4>
+    <p>If you have any questions about these Terms, please contact us at <strong>[SUPPORT EMAIL]</strong>.</p>
+  </div>
+</div>
+{% endblock %}

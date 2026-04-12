@@ -40,6 +40,15 @@ static/
 Thumbs.db
 desktop.ini
 
+# AI and Tools
+.gemini/
+.agent/
+.gsd/
+
+# Temporary and Data Files
+*.txt
+*.xlsx
+
 # Distribution / packaging
 dist/
 build/

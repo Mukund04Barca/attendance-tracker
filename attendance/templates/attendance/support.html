@@ -1,0 +1,43 @@
+{% extends "base.html" %}
+
+{% block title %}Support Center | Attendance Tracker{% endblock %}
+
+{% block content %}
+<div class="row justify-content-center">
+  <div class="col-md-8">
+    <div class="support-card" style="background:rgba(15,23,42,0.95);border:1px solid rgba(255,255,255,0.08);border-radius:20px;padding:40px;box-shadow:0 20px 50px rgba(0,0,0,0.5);">
+      <div style="text-align:center;margin-bottom:32px;">
+        <div style="font-size:3rem;margin-bottom:16px;">💬</div>
+        <h1 style="font-weight:800;letter-spacing:-1.5px;background:linear-gradient(135deg,#60a5fa,#34d399);-webkit-background-clip:text;background-clip:text;-webkit-text-fill-color:transparent;">Support Center</h1>
+        <p style="color:#94a3b8;font-size:0.95rem;">Something not working? Have a suggestion? We're here to help.</p>
+      </div>
+
+      <form method="post">
+        {% csrf_token %}
+        <div class="mb-4">
+          <label class="form-label" style="font-size:0.7rem;text-transform:uppercase;letter-spacing:1px;color:#e2e8f0;font-weight:700;">Subject</label>
+          <select name="subject" class="form-control" style="background:rgba(255,255,255,0.02);border:1px solid rgba(255,255,255,0.1);color:#fff;border-radius:10px;padding:12px;">
+            <option value="Bug Report">🐛 Bug Report</option>
+            <option value="Feature Request">💡 Feature Request</option>
+            <option value="Account Issue">🔐 Account Issue</option>
+            <option value="Other">❓ Other</option>
+          </select>
+        </div>
+
+        <div class="mb-4">
+          <label class="form-label" style="font-size:0.7rem;text-transform:uppercase;letter-spacing:1px;color:#e2e8f0;font-weight:700;">Describe the issue</label>
+          <textarea name="message" required class="form-control" rows="6" placeholder="Please provide details..." style="-webkit-appearance: none; appearance: none; margin: 0; background:rgba(255,255,255,0.02);border:1px solid rgba(255,255,255,0.1);color:#fff;border-radius:10px;padding:14px;resize:none;"></textarea>
+        </div>
+
+        <button type="submit" style="width:100%;background:linear-gradient(135deg,#2563eb,#1d4ed8);border:none;color:#fff;padding:16px;border-radius:12px;font-weight:700;letter-spacing:0.5px;box-shadow:0 10px 25px rgba(37,99,235,0.35);transition:transform 0.2s;">
+          🚀 Send Report
+        </button>
+      </form>
+      
+      <div style="margin-top:30px;padding-top:20px;border-top:1px solid rgba(255,255,255,0.05);text-align:center;">
+        <p style="font-size:0.8rem;color:#475569;">Direct Email: <a href="mailto:support@attendacetracker.duckdns.org" style="color:#60a5fa;text-decoration:none;">support@attendacetracker.duckdns.org</a></p>
+      </div>
+    </div>
+  </div>
+</div>
+{% endblock %}

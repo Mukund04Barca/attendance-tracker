@@ -560,6 +560,64 @@
       color: rgba(255, 255, 255, 0.22);
     }
 
+    /* Password Checklist styles */
+    .pw-checklist {
+      margin-top: 15px;
+      padding: 12px;
+      background: rgba(255, 255, 255, 0.03);
+      border-radius: 12px;
+      font-size: 0.75rem;
+      border: 1px solid rgba(255, 255, 255, 0.05);
+    }
+    .check-item {
+      display: flex;
+      align-items: center;
+      gap: 8px;
+      margin-bottom: 6px;
+      color: rgba(255, 255, 255, 0.3);
+      transition: color 0.3s;
+    }
+    .check-item.valid {
+      color: #10b981;
+    }
+    .check-icon {
+      width: 14px;
+      height: 14px;
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+      background: rgba(255,255,255,0.05);
+      border-radius: 50%;
+      font-size: 0.6rem;
+    }
+    .valid .check-icon {
+      background: rgba(16, 185, 129, 0.2);
+    }
+
+    /* Eye toggle */
+    .pw-toggle {
+      position: absolute;
+      right: 14px;
+      top: 50%;
+      transform: translateY(-50%);
+      background: none;
+      border: none;
+      color: #34d399;
+      cursor: pointer;
+      padding: 0;
+      z-index: 5;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      transition: color 0.2s, opacity 0.2s;
+      opacity: 0.6;
+    }
+    .pw-toggle:hover { 
+      opacity: 1;
+      color: #34d399;
+    }
+    .pw-toggle svg { width: 18px; height: 18px; }
+
     /* Mobile */
     @media (max-width:768px) {
       .page {
@@ -676,7 +734,9 @@
                   <input type="password" name="password1" id="id_password1" placeholder=" " autocomplete="new-password"
                     required />
                   <label for="id_password1">Password</label>
-                  <span class="field-icon">🔒</span>
+                  <button type="button" class="pw-toggle" onclick="togglePw('id_password1', this)">
+                    <svg fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 12a3 3 0 11-6 0 3 3 0 016 0z"/><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M2.458 12C3.732 7.943 7.523 5 12 5c4.478 0 8.268 2.943 9.542 7-1.274 4.057-5.064 7-9.542 7-4.477 0-8.268-2.943-9.542-7z"/></svg>
+                  </button>
                 </div>
                 <div class="strength-bar">
                   <div class="strength-fill" id="strength-fill"></div>
@@ -691,12 +751,22 @@
                   <input type="password" name="password2" id="id_password2" placeholder=" " autocomplete="new-password"
                     required />
                   <label for="id_password2">Confirm</label>
-                  <span class="field-icon">✔</span>
+                  <button type="button" class="pw-toggle" onclick="togglePw('id_password2', this)">
+                    <svg fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 12a3 3 0 11-6 0 3 3 0 016 0z"/><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M2.458 12C3.732 7.943 7.523 5 12 5c4.478 0 8.268 2.943 9.542 7-1.274 4.057-5.064 7-9.542 7-4.477 0-8.268-2.943-9.542-7z"/></svg>
+                  </button>
                 </div>
                 {% if form.password2.errors %}
                 <ul class="field-errors">{% for e in form.password2.errors %}<li>⚠ {{ e }}</li>{% endfor %}</ul>
                 {% endif %}
               </div>
+            </div>
+
+            <div class="pw-checklist">
+                <div class="check-item" id="check-len"><span class="check-icon">✓</span> At least 8 characters</div>
+                <div class="check-item" id="check-upper"><span class="check-icon">✓</span> At least one uppercase letter</div>
+                <div class="check-item" id="check-lower"><span class="check-icon">✓</span> At least one lowercase letter</div>
+                <div class="check-item" id="check-digit"><span class="check-icon">✓</span> At least one digit</div>
+                <div class="check-item" id="check-special"><span class="check-icon">✓</span> At least one special character</div>
             </div>
 
           </div><!-- field-group -->
@@ -730,18 +800,47 @@
     // Password strength bar
     const pw = document.getElementById('id_password1');
     const bar = document.getElementById('strength-fill');
+    
+    const checks = {
+      len: document.getElementById('check-len'),
+      upper: document.getElementById('check-upper'),
+      lower: document.getElementById('check-lower'),
+      digit: document.getElementById('check-digit'),
+      special: document.getElementById('check-special')
+    };
+
     pw && pw.addEventListener('input', () => {
       const v = pw.value;
       let score = 0;
-      if (v.length >= 8) score++;
-      if (/[A-Z]/.test(v)) score++;
-      if (/[0-9]/.test(v)) score++;
-      if (/[^A-Za-z0-9]/.test(v)) score++;
-      const map = ['0%', '30%', '55%', '80%', '100%'];
-      const clr = ['#ef4444', '#f97316', '#eab308', '#22c55e', '#6c63ff'];
+      
+      const vLen = v.length >= 8;
+      const vUpper = /[A-Z]/.test(v);
+      const vLower = /[a-z]/.test(v);
+      const vDigit = /[0-9]/.test(v);
+      const vSpecial = /[^A-Za-z0-9]/.test(v);
+
+      if (vLen) { score++; checks.len.classList.add('valid'); } else checks.len.classList.remove('valid');
+      if (vUpper) { score++; checks.upper.classList.add('valid'); } else checks.upper.classList.remove('valid');
+      if (vLower) { score++; checks.lower.classList.add('valid'); } else checks.lower.classList.remove('valid');
+      if (vDigit) { score++; checks.digit.classList.add('valid'); } else checks.digit.classList.remove('valid');
+      if (vSpecial) { score++; checks.special.classList.add('valid'); } else checks.special.classList.remove('valid');
+
+      const map = ['0%', '20%', '40%', '60%', '80%', '100%'];
+      const clr = ['#ef4444', '#f97316', '#eab308', '#22c55e', '#10b981', '#6c63ff'];
       bar.style.width = map[score];
       bar.style.background = clr[score];
     });
+
+    function togglePw(id, btn) {
+      const inp = document.getElementById(id);
+      if (inp.type === 'password') {
+        inp.type = 'text';
+        btn.innerHTML = '<svg fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13.875 18.825A10.05 10.05 0 0112 19c-4.478 0-8.268-2.943-9.543-7a9.97 9.97 0 011.563-3.029m5.858.908a3 3 0 114.243 4.243M9.878 9.878l4.242 4.242M9.88 9.88l-3.29-3.29m7.532 7.532l3.29 3.29M3 3l18 18"/></svg>';
+      } else {
+        inp.type = 'password';
+        btn.innerHTML = '<svg fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 12a3 3 0 11-6 0 3 3 0 016 0z"/><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M2.458 12C3.732 7.943 7.523 5 12 5c4.478 0 8.268 2.943 9.542 7-1.274 4.057-5.064 7-9.542 7-4.477 0-8.268-2.943-9.542-7z"/></svg>';
+      }
+    }
   </script>
 </body>
 
