@@ -25,8 +25,10 @@
     /* Left Panel */
     .left-panel {
       flex: 1;
-      background: radial-gradient(circle at 0% 0%, rgba(29, 158, 117, 0.15) 0%, transparent 50%),
-                  linear-gradient(135deg, #0A0F1C 0%, #111827 100%);
+      background:
+        linear-gradient(135deg, rgba(255,255,255,0.05), transparent 32%),
+        radial-gradient(circle at 0% 0%, rgba(29, 158, 117, 0.15) 0%, transparent 50%),
+        linear-gradient(135deg, #0A0F1C 0%, #111827 100%);
       display: flex;
       flex-direction: column;
       justify-content: center;
@@ -62,6 +64,14 @@
       justify-content: center;
       font-size: 1.5rem;
       box-shadow: 0 0 20px var(--accent-glow);
+      font-size: 0;
+      transform: perspective(700px) rotateX(8deg) rotateY(-12deg);
+    }
+
+    .brand-logo::before {
+      content: "TT";
+      font-size: 0.9rem;
+      font-weight: 800;
     }
 
     .brand-name { font-family: 'Space Grotesk', sans-serif; font-size: 1.25rem; font-weight: 700; letter-spacing: -0.02em; }
@@ -73,7 +83,9 @@
     /* Right Panel */
     .right-panel {
       width: 500px;
-      background: var(--surface);
+      background:
+        linear-gradient(180deg, rgba(255, 255, 255, 0.045), transparent 40%),
+        var(--surface);
       border-left: 1px solid var(--border);
       display: flex;
       align-items: center;
@@ -84,7 +96,11 @@
       box-shadow: -20px 0 60px rgba(0,0,0,0.5);
     }
 
-    .form-box { width: 100%; max-width: 360px; }
+    .form-box {
+      width: 100%;
+      max-width: 360px;
+      transform: translateZ(0);
+    }
     .form-box h2 { font-size: 2rem; font-weight: 800; margin-bottom: 8px; letter-spacing: -0.02em; }
     .form-box p { color: var(--muted); font-size: 0.9rem; margin-bottom: 32px; }
 
@@ -101,7 +117,7 @@
       outline: none;
       transition: all 0.2s;
     }
-    .input-field input:focus { border-color: var(--accent); box-shadow: 0 0 0 4px rgba(29, 158, 117, 0.1); }
+    .input-field input:focus { border-color: var(--accent); box-shadow: 0 0 0 4px rgba(29, 158, 117, 0.1), 0 10px 24px rgba(0,0,0,0.22); }
 
     .btn-submit {
       width: 100%;
@@ -118,6 +134,11 @@
       margin-top: 10px;
     }
     .btn-submit:hover { transform: translateY(-2px); box-shadow: 0 12px 30px rgba(29, 158, 117, 0.4); }
+
+    .btn-submit:focus-visible, .input-field input:focus-visible, .alt-action a:focus-visible {
+      outline: 3px solid rgba(29, 158, 117, 0.45);
+      outline-offset: 3px;
+    }
 
     .alt-action { text-align: center; margin-top: 32px; font-size: 0.9rem; color: var(--muted); }
     .alt-action a { color: var(--accent); text-decoration: none; font-weight: 700; margin-left: 4px; }
@@ -157,19 +178,19 @@
         <form method="post">
           {% csrf_token %}
           <div class="input-field">
-            <label>Security ID / Username</label>
-            <input type="text" name="username" required autocomplete="username" />
+            <label for="id_username">Username</label>
+            <input id="id_username" type="text" name="username" required autocomplete="username" />
           </div>
           <div class="input-field">
-            <label>Access Key / Password</label>
-            <input type="password" name="password" required autocomplete="current-password" />
+            <label for="id_password">Password</label>
+            <input id="id_password" type="password" name="password" required autocomplete="current-password" />
           </div>
           
           <div style="text-align: right; margin-top: -12px; margin-bottom: 24px;">
             <a href="{% url 'password_reset' %}" style="color: var(--muted); font-size: 0.8rem; text-decoration: none;">Secure recovery?</a>
           </div>
 
-          <button type="submit" class="btn-submit">Initiate Logon →</button>
+          <button type="submit" class="btn-submit">Sign in -></button>
         </form>
 
         <div class="alt-action">

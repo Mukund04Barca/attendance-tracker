@@ -27,16 +27,22 @@
 
   /* Hero Card - 3D Parallax */
   .hero-card-3d {
-    background: linear-gradient(165deg, rgba(255,255,255,0.06) 0%, rgba(255,255,255,0.015) 100%);
+    background:
+      linear-gradient(155deg, rgba(255,255,255,0.08) 0%, rgba(10, 18, 34, 0.34) 46%, rgba(255,255,255,0.02) 100%),
+      radial-gradient(circle at 88% 12%, rgba(16,185,129,0.16), transparent 30%);
     backdrop-filter: blur(30px);
     border: 1px solid var(--glass-border);
-    border-radius: 20px;
+    border-radius: 18px;
     padding: 36px 40px;
     margin-bottom: 24px;
     position: relative;
     overflow: hidden;
     transform: translateZ(30px);
-    box-shadow: 0 20px 60px rgba(0,0,0,0.3), 0 0 40px rgba(6,182,212,0.05);
+    box-shadow:
+      inset 0 1px 0 rgba(255,255,255,0.08),
+      inset 0 -1px 0 rgba(255,255,255,0.03),
+      0 28px 70px rgba(0,0,0,0.34),
+      0 0 42px rgba(6,182,212,0.06);
     transition: transform 0.1s ease-out;
   }
 
@@ -89,6 +95,10 @@
     align-items: center;
     gap: 10px;
     text-decoration: none;
+    min-height: 46px;
+    box-shadow:
+      inset 0 1px 0 rgba(255,255,255,0.08),
+      0 10px 22px rgba(0,0,0,0.22);
   }
 
   .btn-cinematic-primary {
@@ -118,10 +128,12 @@
   .grid-system { display: grid; grid-template-columns: repeat(3, 1fr); gap: 24px; margin-bottom: 24px; }
 
   .card-3d {
-    background: linear-gradient(165deg, rgba(255,255,255,0.05) 0%, rgba(255,255,255,0.015) 100%);
+    background:
+      linear-gradient(155deg, rgba(255,255,255,0.07) 0%, rgba(255,255,255,0.018) 100%),
+      rgba(10, 18, 34, 0.42);
     backdrop-filter: blur(20px);
     border: 1px solid var(--glass-border);
-    border-radius: 16px;
+    border-radius: 14px;
     padding: 24px;
     position: relative;
     overflow: hidden;
@@ -131,7 +143,9 @@
 
   .card-3d:hover {
     transform: translateZ(25px) translateY(-5px);
-    box-shadow: 0 15px 50px rgba(37,99,235,0.12);
+    box-shadow:
+      inset 0 1px 0 rgba(255,255,255,0.08),
+      0 15px 50px rgba(37,99,235,0.12);
     border-color: rgba(6,182,212,0.3);
   }
 
@@ -187,12 +201,6 @@
     100% { border-color: rgba(6,182,212,0.2); }
   }
 
-  /* Floating Orbs for local context */
-  .orb-dash {
-    position: absolute; width: 300px; height: 300px; border-radius: 50%;
-    filter: blur(80px); opacity: 0.1; pointer-events: none; z-index: -1;
-  }
-
   /* Modal Refresh */
   .modal-content.glass {
     background: rgba(10, 15, 30, 0.85);
@@ -200,13 +208,21 @@
     border: 1px solid var(--glass-border);
     color: white;
   }
+
+  @media (prefers-reduced-motion: reduce) {
+    .hero-card-3d,
+    .card-3d,
+    .btn-cinematic,
+    .spark-bar {
+      transition: none !important;
+      animation: none !important;
+      transform: none !important;
+    }
+  }
 </style>
 {% endblock %}
 
 {% block content %}
-<div class="orb-dash" style="top: 10%; right: 5%; background: var(--cyan);"></div>
-<div class="orb-dash" style="bottom: 20%; left: 0; background: var(--sapphire);"></div>
-
 <div class="cinematic-container">
   <!-- 3D Parallax Hero Card -->
   <div class="hero-card-3d" id="heroCard">
@@ -214,9 +230,9 @@
     <div class="hero-subtitle">
       Welcome back, <strong>{{ request.user.username }}</strong>. 
       {% if record.check_in %}
-        You initiated your session at <span style="color: var(--cyan)">{{ check_in_display }}</span>.
+        Your session started at <span style="color: var(--cyan)">{{ check_in_display }}</span>.
       {% else %}
-        Ready to initiate your enterprise synchronization for {{ today|date:"l, d F" }}?
+        Ready to start tracking for {{ today|date:"l, d F" }}?
       {% endif %}
     </div>
 
@@ -237,9 +253,9 @@
         <div class="hero-stat-change up">↑ Target: {{ weekly_target }}h</div>
       </div>
       <div>
-        <div class="hero-stat-value">100%</div>
-        <div class="hero-stat-label">Sync Accuracy</div>
-        <div class="hero-stat-change up">Verified</div>
+        <div class="hero-stat-value">{{ week_completed_days }}/{{ week_recorded_days }}</div>
+        <div class="hero-stat-label">Completed Days</div>
+        <div class="hero-stat-change {% if week_completion_percent == 100 %}up{% else %}down{% endif %}">{{ week_completion_percent }}% closed</div>
       </div>
     </div>
 
@@ -248,30 +264,30 @@
       {% if not record.check_in %}
         <form method="post">
           {% csrf_token %}
-          <button type="submit" name="action" value="checkin" class="btn-cinematic btn-cinematic-primary">
+          <button type="submit" name="action" value="check_in" class="btn-cinematic btn-cinematic-primary" aria-label="Check in for today">
             <svg width="20" height="20" fill="none" stroke="currentColor" stroke-width="2"><path d="M15 3h4a2 2 0 012 2v14a2 2 0 01-2 2h-4"/><polyline points="10 17 15 12 10 7"/><line x1="15" y1="12" x2="3" y2="12"/></svg>
-            Initiate Session
+            Start Session
           </button>
         </form>
       {% elif not record.check_out %}
         <form method="post">
           {% csrf_token %}
-          <button type="submit" name="action" value="checkout" class="btn-cinematic btn-cinematic-danger">
+          <button type="submit" name="action" value="check_out" class="btn-cinematic btn-cinematic-danger" aria-label="Check out for today">
             <svg width="20" height="20" fill="none" stroke="currentColor" stroke-width="2"><path d="M9 21H5a2 2 0 01-2-2V5a2 2 0 012-2h4"/><polyline points="16 17 21 12 16 7"/><line x1="21" y1="12" x2="9" y2="12"/></svg>
-            Terminate Session
+            End Session
           </button>
         </form>
       {% endif %}
       
-      <button class="btn-cinematic" data-bs-toggle="modal" data-bs-target="#manualEntryModal">
+      <button type="button" class="btn-cinematic" data-bs-toggle="modal" data-bs-target="#manualEntryModal">
         <svg width="20" height="20" fill="none" stroke="currentColor" stroke-width="2"><path d="M11 4H4a2 2 0 00-2 2v14a2 2 0 002 2h14a2 2 0 002-2v-7"/><path d="M18.5 2.5a2.121 2.121 0 113 3L12 15l-4 1 1-4 9.5-9.5z"/></svg>
-        Manual Sync
+        Edit Time
       </button>
 
       {% if record.check_in %}
         <a href="{% url 'timesheet' %}" class="btn-cinematic">
           <svg width="20" height="20" fill="none" stroke="currentColor" stroke-width="2"><path d="M14 2H6a2 2 0 00-2 2v16a2 2 0 002 2h12a2 2 0 002-2V8z"/><polyline points="14 2 14 8 20 8"/><line x1="16" y1="13" x2="8" y2="13"/><line x1="16" y1="17" x2="8" y2="17"/></svg>
-          Commit Timesheet
+          Open Timesheet
         </a>
       {% endif %}
     </div>
@@ -279,7 +295,7 @@
     {% if expected_checkout and not record.check_out %}
     <div style="margin-top:20px; padding:12px; background:rgba(6, 182, 212, 0.05); border-radius:10px; border:1px solid rgba(6, 182, 212, 0.15); font-size:0.85rem; color:var(--cyan);">
       <svg width="16" height="16" fill="none" stroke="currentColor" stroke-width="2" style="margin-right:8px;vertical-align:middle;"><circle cx="12" cy="12" r="10"/><polyline points="12 6 12 12 16 14"/></svg>
-      Optimal termination target to meet {{ daily_target_hours }}h: <strong>{{ expected_checkout }}</strong>
+      Suggested checkout to meet {{ daily_target_hours }}h: <strong>{{ expected_checkout }}</strong>
     </div>
     {% endif %}
   </div>
@@ -308,11 +324,11 @@
 
     <div class="card-3d">
       <div class="card-header">
-        <div class="card-title">Session Accuracy</div>
-        <div class="card-badge" style="color:var(--emerald); background:rgba(16,185,129,0.1); border-color:rgba(16,185,129,0.2);">Optimal</div>
+        <div class="card-title">Week Completion</div>
+        <div class="card-badge" style="color:var(--emerald); background:rgba(16,185,129,0.1); border-color:rgba(16,185,129,0.2);">Actual</div>
       </div>
-      <div class="card-value">98.4<span style="font-size:16px; color:var(--muted);">%</span></div>
-      <div class="card-sub">Manual vs Auto sync deviation</div>
+      <div class="card-value">{{ week_completion_percent }}<span style="font-size:16px; color:var(--muted);">%</span></div>
+      <div class="card-sub">{{ week_completed_days }} of {{ week_recorded_days }} recorded days checked out</div>
       <div class="sparkline" id="sparkAccuracy"></div>
     </div>
   </div>
@@ -322,7 +338,7 @@
     <!-- Chrono Logs -->
     <div class="chrono-card">
       <div class="card-header">
-        <div class="card-title">Chrono Logs (Recent Syncs)</div>
+        <div class="card-title">Recent Attendance</div>
         <div style="display:flex;gap:6px;">
           <span class="card-badge">Daily Feed</span>
         </div>
@@ -362,7 +378,7 @@
             {% if not record.check_in %}
             <tr>
               <td colspan="5" style="text-align:center; padding: 40px; color: var(--muted);">
-                No recent activity cycles detected.
+                No recent attendance records yet.
               </td>
             </tr>
             {% endif %}
@@ -390,11 +406,11 @@
         </div>
         {% empty %}
         <div style="text-align:center; padding:20px; color:var(--muted); font-size: 13px;">
-          No holidays in immediate buffer.
+          No upcoming holidays.
         </div>
         {% endfor %}
       </div>
-      <a href="{% url 'holiday_list' %}" style="display:block; text-align:center; color:var(--cyan); font-size:11px; text-decoration:none; margin-top:10px; font-weight:600;">View Full Roadmap →</a>
+      <a href="{% url 'holiday_list' %}" style="display:block; text-align:center; color:var(--cyan); font-size:11px; text-decoration:none; margin-top:10px; font-weight:600;">View Holiday Calendar -></a>
     </div>
   </div>
 </div>
@@ -404,23 +420,23 @@
   <div class="modal-dialog modal-dialog-centered">
     <div class="modal-content glass" style="border-radius:20px; border:1px solid var(--border-hi);">
       <div class="modal-header border-0 pb-0">
-        <h5 class="modal-title" style="font-weight:800; letter-spacing:-0.5px;">Manual Sync Initialization</h5>
+        <h5 class="modal-title" style="font-weight:800; letter-spacing:-0.5px;">Edit Attendance Time</h5>
         <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal"></button>
       </div>
       <form method="post">
         {% csrf_token %}
         <div class="modal-body">
           <p style="font-size:0.85rem; color:var(--muted); margin-bottom:20px;">
-            Adjust your temporal session parameters if the automatic sync failed.
+            Update your check-in or check-out time when the recorded time needs correction.
           </p>
           <div class="row g-3">
             <div class="col-6">
-              <label class="form-label" style="font-size:11px; text-transform:uppercase; color:var(--cyan); font-weight:700;">Initiation</label>
+              <label class="form-label" style="font-size:11px; text-transform:uppercase; color:var(--cyan); font-weight:700;">Check-in</label>
               <input type="time" name="manual_check_in" class="form-control bg-dark text-white border-secondary" 
                      value="{{ check_in_display }}">
             </div>
             <div class="col-6">
-              <label class="form-label" style="font-size:11px; text-transform:uppercase; color:var(--cyan); font-weight:700;">Termination</label>
+              <label class="form-label" style="font-size:11px; text-transform:uppercase; color:var(--cyan); font-weight:700;">Check-out</label>
               <input type="time" name="manual_check_out" class="form-control bg-dark text-white border-secondary" 
                      value="{{ check_out_display }}">
             </div>
@@ -428,7 +444,7 @@
         </div>
         <div class="modal-footer border-0 pt-0">
           <button type="button" class="btn btn-link text-muted text-decoration-none" data-bs-dismiss="modal">Cancel</button>
-          <button type="submit" name="action" value="set_manual" class="btn-cinematic btn-cinematic-primary" style="padding: 8px 24px;">Overwrite Sync</button>
+          <button type="submit" name="action" value="set_manual" class="btn-cinematic btn-cinematic-primary" style="padding: 8px 24px;">Save Time</button>
         </div>
       </form>
     </div>
@@ -438,19 +454,20 @@
 
 {% block extra_scripts %}
 <script>
-  // ——— Hero Card Parallax ———
+  // Hero Card Parallax
   const heroCard = document.getElementById('heroCard');
-  document.addEventListener('mousemove', (e) => {
-    const x = (e.clientX / window.innerWidth - 0.5) * 2;
-    const y = (e.clientY / window.innerHeight - 0.5) * 2;
-    
-    // Subtle rotation for hero card
-    if (heroCard) {
-      heroCard.style.transform = `translateZ(30px) rotateX(${-y * 5}deg) rotateY(${x * 5}deg)`;
-    }
-  });
+  const allowMotion = !window.matchMedia('(prefers-reduced-motion: reduce)').matches;
+  if (allowMotion) {
+    document.addEventListener('mousemove', (e) => {
+      const x = (e.clientX / window.innerWidth - 0.5) * 2;
+      const y = (e.clientY / window.innerHeight - 0.5) * 2;
+      if (heroCard) {
+        heroCard.style.transform = `translateZ(30px) rotateX(${-y * 5}deg) rotateY(${x * 5}deg)`;
+      }
+    });
+  }
 
-  // ——— Sparklines Generator ———
+  // Sparklines Generator
   function createSparkline(id) {
     const container = document.getElementById(id);
     if (!container) return;
@@ -466,10 +483,12 @@
   createSparkline('sparkAccuracy');
 
   // Sparkline animation
-  setInterval(() => {
-    document.querySelectorAll('.spark-bar').forEach(bar => {
-      bar.style.height = Math.random() * 80 + 20 + '%';
-    });
-  }, 3000);
+  if (allowMotion) {
+    setInterval(() => {
+      document.querySelectorAll('.spark-bar').forEach(bar => {
+        bar.style.height = Math.random() * 80 + 20 + '%';
+      });
+    }, 3000);
+  }
 </script>
 {% endblock %}

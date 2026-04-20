@@ -10,7 +10,7 @@
   :root {
     --col-w: 64px;
     --row-h: 48px;
-    --header-col: 240px;
+    --header-col: 300px;
     --accent: #3B82F6;
     --accent-light: rgba(59, 130, 246, 0.12);
     --weekend-bg: rgba(255, 255, 255, 0.03);
@@ -37,20 +37,26 @@
   .ts-card {
     flex: 1;
     min-width: 140px;
-    background: rgba(17, 24, 39, 0.4);
+    background:
+      linear-gradient(145deg, rgba(255, 255, 255, 0.08), rgba(17, 24, 39, 0.34)),
+      rgba(17, 24, 39, 0.4);
     backdrop-filter: var(--glass-blur);
     -webkit-backdrop-filter: var(--glass-blur);
     border: 1px solid var(--border-color);
-    border-radius: 20px;
+    border-radius: 16px;
     padding: 24px;
     display: flex;
     flex-direction: column;
     gap: 6px;
     transition: all 0.3s ease;
-    box-shadow: 0 10px 20px rgba(0, 0, 0, 0.2);
+    transform: perspective(900px) rotateX(0) translateY(0);
+    box-shadow:
+      inset 0 1px 0 rgba(255, 255, 255, 0.08),
+      0 18px 34px rgba(0, 0, 0, 0.26),
+      0 1px 0 rgba(255, 255, 255, 0.05);
   }
   .ts-card:hover {
-    transform: translateY(-4px);
+    transform: perspective(900px) rotateX(4deg) translateY(-5px);
     border-color: var(--accent);
     background: rgba(59, 130, 246, 0.05);
   }
@@ -76,6 +82,8 @@
     align-items: center;
     margin-bottom: 20px;
     padding: 0 4px;
+    gap: 18px;
+    flex-wrap: wrap;
   }
   .ts-nav {
     display: flex;
@@ -102,10 +110,14 @@
     cursor: pointer;
     transition: all 0.2s;
     text-decoration: none;
+    box-shadow: 0 8px 18px rgba(0, 0, 0, 0.2);
+    font-size: 1rem;
+    font-weight: 900;
   }
   .nav-btn:hover {
     background: var(--accent);
     border-color: var(--accent);
+    transform: translateY(-2px);
   }
 
   .week-pills {
@@ -135,13 +147,17 @@
 
   /* Table Grid System */
   .ts-table-box {
-    background: rgba(15, 23, 42, 0.4);
+    background:
+      linear-gradient(160deg, rgba(255, 255, 255, 0.06), rgba(15, 23, 42, 0.28)),
+      rgba(15, 23, 42, 0.4);
     border: 1px solid var(--border-color);
-    border-radius: 24px;
+    border-radius: 18px;
     overflow: hidden;
     position: relative;
     backdrop-filter: blur(10px);
-    box-shadow: 0 20px 50px rgba(0,0,0,0.4);
+    box-shadow:
+      inset 0 1px 0 rgba(255, 255, 255, 0.07),
+      0 24px 58px rgba(0,0,0,0.38);
   }
   .ts-scroll {
     overflow-x: auto;
@@ -161,8 +177,8 @@
   /* Sticky Columns */
   .f-col { position: sticky; left: 0; z-index: 10; background: #0F172A; }
   .f-col-2 { position: sticky; left: 40px; z-index: 10; background: #0F172A; }
-  .f-col-3 { position: sticky; left: 200px; z-index: 10; background: #0F172A; }
-  .f-col-4 { position: sticky; left: 240px; z-index: 10; background: #0F172A; }
+  .f-col-3 { position: sticky; left: 220px; z-index: 10; background: #0F172A; }
+  .f-col-4 { position: sticky; left: 320px; z-index: 10; background: #0F172A; }
 
   .th-day {
     padding: 12px 6px;
@@ -196,9 +212,9 @@
   
   .act-tr:hover td { background: rgba(255, 255, 255, 0.03) !important; }
   .act-sr { width: 40px; text-align: center; color: #475569; font-size: 0.75rem; }
-  .act-name { width: 160px; padding: 0 12px; }
-  .act-sub { width: 40px; text-align: center; }
-  .act-id { width: 60px; text-align: center; }
+  .act-name { width: 180px; padding: 8px 12px; }
+  .act-sub { width: 100px; text-align: center; padding: 8px; }
+  .act-id { width: 90px; text-align: center; padding: 8px; }
 
   .cat-pill {
     padding: 3px 8px;
@@ -245,13 +261,62 @@
   
   /* Select/Input replacements for activity edits */
   .act-input {
-    background: rgba(0, 0, 0, 0.2);
+    background: rgba(0, 0, 0, 0.22);
     border: 1px solid var(--border-color);
     border-radius: 6px;
     color: white;
     font-size: 0.75rem;
-    padding: 4px 8px;
+    padding: 7px 8px;
     width: 100%;
+    outline: none;
+  }
+  .act-input:focus {
+    border-color: var(--accent);
+    box-shadow: 0 0 0 3px rgba(59, 130, 246, 0.16);
+  }
+  .delete-row-btn {
+    width: 26px;
+    height: 26px;
+    border: 1px solid rgba(239, 68, 68, 0.24);
+    border-radius: 8px;
+    background: rgba(239, 68, 68, 0.08);
+    color: #FCA5A5;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    font-weight: 900;
+    line-height: 1;
+    transition: transform 0.18s, background 0.18s, border-color 0.18s;
+  }
+  .delete-row-btn:hover {
+    transform: translateY(-1px);
+    background: rgba(239, 68, 68, 0.18);
+    border-color: rgba(239, 68, 68, 0.5);
+  }
+  .act-select {
+    appearance: none;
+    color: #E5EDF9;
+  }
+  .row-actions {
+    display: flex;
+    gap: 8px;
+    flex-wrap: wrap;
+    margin-top: 16px;
+  }
+  .quick-add-btn {
+    border: 1px solid var(--border-color);
+    background: linear-gradient(145deg, rgba(255,255,255,0.07), rgba(15,23,42,0.42));
+    color: #DCE7F7;
+    border-radius: 10px;
+    padding: 8px 12px;
+    font-size: 0.75rem;
+    font-weight: 800;
+    transition: transform 0.2s, border-color 0.2s, background 0.2s;
+  }
+  .quick-add-btn:hover {
+    transform: translateY(-2px);
+    border-color: var(--accent);
+    background: rgba(59, 130, 246, 0.12);
   }
 </style>
 {% endblock %}
@@ -274,9 +339,9 @@
       <div class="week-pills" id="weekPills"></div>
       
       <div class="ts-nav">
-        <a href="?year={{ prev_year }}&month={{ prev_month }}" class="nav-btn">←</a>
+        <a href="?year={{ prev_year }}&month={{ prev_month }}" class="nav-btn" aria-label="Previous month">&larr;</a>
         <div class="ts-nav-label">{{ month_name }} {{ year }}</div>
-        <a href="?year={{ next_year }}&month={{ next_month }}" class="nav-btn">→</a>
+        <a href="?year={{ next_year }}&month={{ next_month }}" class="nav-btn" aria-label="Next month">&rarr;</a>
       </div>
       
       <a href="{% url 'timesheet_export' %}?year={{ year }}&month={{ month }}" class="btn btn-outline-light" style="font-size: 0.75rem; padding: 8px 16px; border-radius: 10px;">
@@ -298,6 +363,13 @@
       </div>
     </div>
 
+    <div class="row-actions">
+      <button type="button" class="quick-add-btn" onclick="addNewActivity('Development')">+ Development Artifact</button>
+      <button type="button" class="quick-add-btn" onclick="addNewActivity('Testing')">+ Testing Artifact</button>
+      <button type="button" class="quick-add-btn" onclick="addNewActivity('Analysis')">+ Analysis Artifact</button>
+      <button type="button" class="quick-add-btn" onclick="addNewActivity('Support')">+ Support Artifact</button>
+    </div>
+
     <div class="ts-footer">
       <button type="button" class="btn btn-outline-secondary" onclick="window.location.reload()">Discard Changes</button>
       <button type="button" class="btn btn-primary" style="padding: 10px 32px; border-radius: 12px; font-weight: 800; box-shadow: 0 8px 24px rgba(37, 99, 235, 0.4);" onclick="submitTimesheet()">
@@ -308,15 +380,7 @@
 </div>
 
 <!-- DATA CONTEXT -->
-<script id="data-context" type="application/json">
-{
-  "year": {{ year }},
-  "month": {{ month }},
-  "time_map": {{ sample_data_json|safe }},
-  "activities": {{ activities_json|safe }},
-  "holidays": {{ holidays_json|safe }}
-}
-</script>
+{{ timesheet_context|json_script:"data-context" }}
 
 <script>
 const dataContext = JSON.parse(document.getElementById('data-context').textContent);
@@ -326,11 +390,44 @@ const MONTHS = ['January','February','March','April','May','June','July','August
 let currentYear = dataContext.year;
 let currentMonth = dataContext.month - 1; // 0-indexed
 let attMap = dataContext.time_map;
-let activities = dataContext.activities;
+let activities = dataContext.activities.map(normalizeActivity);
 let holidays = dataContext.holidays;
 
 let activeWeek = 0;
 let visibleDays = [];
+
+function esc(value) {
+  return String(value ?? '').replace(/[&<>"']/g, ch => ({
+    '&': '&amp;',
+    '<': '&lt;',
+    '>': '&gt;',
+    '"': '&quot;',
+    "'": '&#39;'
+  }[ch]));
+}
+
+function escAttr(value) {
+  return esc(value).replace(/`/g, '&#96;');
+}
+
+function normalizeActivity(act) {
+  const categoryText = String(act.category || '');
+  const subText = String(act.sub || '');
+  const combined = `${categoryText} ${subText}`.toLowerCase();
+  
+  let category = 'Development/Analysis/Testing';
+  if (combined.includes('support')) category = 'Support';
+  else if (combined.includes('meet') || combined.includes('scrum')) category = 'Meeting';
+  else if (categoryText && !combined.includes('develop') && !combined.includes('test') && !combined.includes('analy') && !categoryText.includes('/')) category = categoryText;
+
+  return {
+    ...act,
+    category,
+    sub: subText || (categoryText.includes('/') ? categoryText.split('/').filter(Boolean).pop() : ''),
+    catClass: categoryClass(category),
+    hours: act.hours || {}
+  };
+}
 
 function getDaysInMonth(y, m) { return new Date(y, m + 1, 0).getDate(); }
 function getStartDay(y, m) { return new Date(y, m, 1).getDay(); }
@@ -392,11 +489,13 @@ function renderSummary() {
   }
   const actTotal = activities.reduce((s, a) => s + Object.values(a.hours).reduce((x, v) => x + (parseFloat(v) || 0), 0), 0);
   
+  const expectedESA = workDays * 9;
+  
   document.getElementById('summaryBox').innerHTML = `
     <div class="ts-card"><div class="ts-card-label">Cycle Work Days</div><div class="ts-card-val">${workDays}</div></div>
     <div class="ts-card"><div class="ts-card-label">Total Present</div><div class="ts-card-val accent">${present}</div></div>
     <div class="ts-card"><div class="ts-card-label">Leaves / Offs</div><div class="ts-card-val" style="color:#EF4444">${leaves}</div></div>
-    <div class="ts-card"><div class="ts-card-label">Billable (ESA)</div><div class="ts-card-val" style="color:#3B82F6">${totalESA.toFixed(1)}h</div></div>
+    <div class="ts-card"><div class="ts-card-label">Target ESA</div><div class="ts-card-val" style="color:#3B82F6">${expectedESA}h</div></div>
     <div class="ts-card"><div class="ts-card-label">Logged Time</div><div class="ts-card-val accent">${actTotal.toFixed(1)}h</div></div>
   `;
 }
@@ -408,15 +507,15 @@ function renderTable() {
 
   const colWidth = 64;
   html += '<colgroup>';
-  html += '<col style="width:40px"><col style="width:160px"><col style="width:40px"><col style="width:60px">';
+  html += '<col style="width:40px"><col style="width:180px"><col style="width:100px"><col style="width:90px">';
   days.forEach(() => html += `<col style="width:${colWidth}px">`);
   html += '<col style="width:80px"></colgroup>';
 
   html += '<thead><tr style="height: 60px;">';
   html += `<th class="f-col label-col" style="vertical-align:bottom; border-bottom: none;">#</th>`;
   html += `<th class="f-col-2 label-col" style="vertical-align:bottom; border-bottom: none;">Allocation Detail</th>`;
-  html += `<th class="f-col-3 label-col" style="text-align:center !important; vertical-align:bottom; border-bottom: none;">Sub</th>`;
-  html += `<th class="f-col-4 label-col" style="text-align:center !important; vertical-align:bottom; border-bottom: none;">ID</th>`;
+  html += `<th class="f-col-3 label-col" style="text-align:center !important; vertical-align:bottom; border-bottom: none;">Type</th>`;
+  html += `<th class="f-col-4 label-col" style="text-align:center !important; vertical-align:bottom; border-bottom: none;">Artifact</th>`;
 
   const today = new Date(); 
   let todayD = (today.getFullYear() === currentYear && today.getMonth() === currentMonth) ? today.getDate() : 0;
@@ -482,17 +581,18 @@ function renderTable() {
   // Activity Rows
   activities.forEach((act, actIdx) => {
     const rowTotal = Object.values(act.hours).reduce((s, v) => s + (parseFloat(v) || 0), 0);
+    const catClass = ['cat-sup', 'cat-dev', 'cat-meet', 'cat-test'].includes(act.catClass) ? act.catClass : 'cat-dev';
     html += `<tr class="act-tr" data-act-idx="${actIdx}">`;
-    html += `<td class="f-col act-sr">${act.sr}</td>`;
-    html += `<td class="f-col-2 act-name"><span class="cat-pill ${act.catClass}">${act.category}</span><div style="font-size:0.7rem; color:#94A3B8; margin-top:2px;">${act.sub}</div></td>`;
-    html += `<td class="f-col-3 act-sub"><span style="color:#64748B; font-size:0.7rem;">${actIdx+1}</span></td>`;
-    html += `<td class="f-col-4 act-id"><span style="color:#64748B; font-size:0.6rem; font-family:var(--font-mono)">${act.id}</span></td>`;
+    html += `<td class="f-col act-sr"><button type="button" class="delete-row-btn" title="Delete row" aria-label="Delete row ${actIdx + 1}" onclick="deleteActivity(${actIdx})">×</button><div style="margin-top:4px;">${actIdx + 1}</div></td>`;
+    html += `<td class="f-col-2 act-name"><select class="act-input act-select" onchange="updateActivityField(${actIdx}, 'category', this.value)">${categoryOptions(act.category)}</select><input class="act-input" style="margin-top:6px;" value="${escAttr(act.sub)}" placeholder="Artifact detail" onchange="updateActivityField(${actIdx}, 'sub', this.value)"></td>`;
+    html += `<td class="f-col-3 act-sub"><span class="cat-pill ${catClass}">${esc(act.category)}</span></td>`;
+    html += `<td class="f-col-4 act-id"><input class="act-input" value="${escAttr(act.id)}" placeholder="Artifact ID" onchange="updateActivityField(${actIdx}, 'id', this.value)"></td>`;
     
     days.forEach(d => {
       const dk = String(d);
       const val = act.hours[dk] || '';
       const bg = (isWeekend(d, currentYear, currentMonth) || isHoliday(d)) ? 'weekend-col' : '';
-      html += `<td class="${bg}"><input type="number" step="0.5" class="input-hrs" placeholder="-" value="${val}" onchange="updateHour(${actIdx}, ${d}, this.value)"></td>`;
+      html += `<td class="${bg}"><input type="number" step="0.5" min="0" max="24" class="input-hrs" placeholder="-" value="${escAttr(val)}" onchange="updateHour(${actIdx}, ${d}, this.value)"></td>`;
     });
     
     html += `<td class="total-col accent">${rowTotal.toFixed(1)}</td></tr>`;
@@ -504,7 +604,12 @@ function renderTable() {
     const dk = String(d);
     const daySum = activities.reduce((s, a) => s + (parseFloat(a.hours[dk]) || 0), 0);
     const bg = (isWeekend(d, currentYear, currentMonth) || isHoliday(d)) ? 'weekend-col' : '';
-    html += `<td class="${bg}" style="font-weight:800; color:${daySum > 0 ? 'white' : 'transparent'}">${daySum > 0 ? daySum.toFixed(1) : '0'}</td>`;
+    let targetH = isSaturday(d, currentYear, currentMonth) ? 6 : 9;
+    let color = 'transparent';
+    if (daySum > 0) {
+      color = Math.abs(daySum - targetH) > 0.05 ? '#EF4444' : '#10B981'; // Red if wrong, Green if adds up to 9
+    }
+    html += `<td class="${bg}" style="font-weight:800; color:${color}">${daySum > 0 ? daySum.toFixed(1) : '0'}</td>`;
   });
   const grandTotal = activities.reduce((s, a) => s + Object.values(a.hours).reduce((x, v) => x + (parseFloat(v) || 0), 0), 0);
   html += `<td class="total-col" style="color:var(--accent)">${grandTotal.toFixed(1)}</td></tr>`;
@@ -521,13 +626,43 @@ function updateHour(actIdx, day, val) {
   render();
 }
 
-function addNewActivity() {
+function categoryOptions(selected) {
+  return ['Development/Analysis/Testing', 'Support', 'Meeting', 'Other'].map(category => {
+    const isSelected = category === selected ? ' selected' : '';
+    return `<option value="${escAttr(category)}"${isSelected}>${esc(category)}</option>`;
+  }).join('');
+}
+
+function categoryClass(category) {
+  const value = String(category || '').toLowerCase();
+  if (value.includes('support')) return 'cat-sup';
+  if (value.includes('meet') || value.includes('scrum')) return 'cat-meet';
+  if (value.includes('test')) return 'cat-test';
+  return 'cat-dev';
+}
+
+function updateActivityField(actIdx, field, val) {
+  activities[actIdx][field] = val;
+  if (field === 'category') activities[actIdx].catClass = categoryClass(val);
+  render();
+}
+
+function deleteActivity(actIdx) {
+  activities.splice(actIdx, 1);
+  activities = activities.map((act, idx) => ({ ...act, sr: idx + 1 }));
+  render();
+}
+
+function addNewActivity(type = 'Development') {
+  let cleanCategory = 'Development/Analysis/Testing';
+  if (type === 'Support') cleanCategory = 'Support';
+  
   activities.push({
     sr: activities.length + 1,
-    category: "Development",
-    catClass: "cat-dev",
-    sub: "New Task",
-    id: "TSK-" + Math.floor(Math.random()*1000),
+    category: cleanCategory,
+    catClass: categoryClass(cleanCategory),
+    sub: type === 'Testing' ? 'Testing' : type === 'Support' ? 'Support' : type === 'Analysis' ? 'Analysis' : 'Development',
+    id: "",
     hours: {}
   });
   render();

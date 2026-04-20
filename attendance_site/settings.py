@@ -164,6 +164,11 @@ STATIC_URL = "static/"
 STATIC_ROOT = BASE_DIR / "staticfiles"
 
 DEFAULT_AUTO_FIELD = "django.db.models.BigAutoField"
+X_FRAME_OPTIONS = "DENY"
+SESSION_COOKIE_HTTPONLY = True
+SESSION_COOKIE_SAMESITE = "Lax"
+CSRF_COOKIE_SAMESITE = "Lax"
+SECURE_REFERRER_POLICY = "same-origin"
 
 # -----------------------------------------------------------------------------
 # YAML configuration (attendance + logging)
@@ -239,7 +244,6 @@ CSP_STYLE_SRC = (
 CSP_SCRIPT_SRC = (
     "'self'",
     "'unsafe-inline'",
-    "'unsafe-eval'",
     "https://cdn.jsdelivr.net",
 )
 CSP_FONT_SRC = (
@@ -258,7 +262,12 @@ CSP_IMG_SRC = (
 CORS_ALLOWED_ORIGINS = os.environ.get(
     "CORS_ALLOWED_ORIGINS", 
     "http://localhost:8000,http://127.0.0.1:8000,http://attendacetracker.duckdns.org,https://attendacetracker.duckdns.org"
-).split(",")
+)
+CORS_ALLOWED_ORIGINS = [
+    origin.strip()
+    for origin in CORS_ALLOWED_ORIGINS.split(",")
+    if origin.strip()
+]
 CORS_ALLOW_CREDENTIALS = True
 
 # ------------------------------------------------------------------

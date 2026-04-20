@@ -23,6 +23,8 @@ from .models import AttendanceRecord, Holiday, TimesheetActivity, CompOffRecord,
 logger = logging.getLogger("attendance")
 
 ATT_CFG = getattr(settings, "ATTENDANCE_CONFIG", {})
+MAX_TIMESHEET_ACTIVITIES = 100
+MAX_TEXT_FIELD_LENGTH = 200
 
 WORKDAY_START = datetime.strptime(
     ATT_CFG.get("workday_start", "09:00"), "%H:%M"
@@ -35,6 +37,51 @@ CONFIG_HOLIDAYS = set(ATT_CFG.get("holidays", []))
 WEEKLY_TARGET = float(ATT_CFG.get("weekly_hours_target", 40))
 DAILY_TARGET_HOURS = float(ATT_CFG.get("daily_hours_target", 9))
 SATURDAY_TARGET_HOURS = float(ATT_CFG.get("saturday_hours_target", 6))
+
+
+def _clean_text(value, limit=MAX_TEXT_FIELD_LENGTH):
+    return str(value or "").strip()[:limit]
+
+
+def _clean_timesheet_activities(raw_activities, num_days):
+    if not isinstance(raw_activities, list):
+        raise ValueError("Timesheet payload must be a list.")
+    if len(raw_activities) > MAX_TIMESHEET_ACTIVITIES:
+        raise ValueError("Too many timesheet rows submitted.")
+
+    cleaned = []
+    for i, act_data in enumerate(raw_activities):
+        if not isinstance(act_data, dict):
+            raise ValueError("Invalid timesheet row.")
+
+        raw_hours = act_data.get("hours", {})
+        if not isinstance(raw_hours, dict):
+            raise ValueError("Invalid hours payload.")
+
+        hours = {}
+        for day_key, raw_value in raw_hours.items():
+            day = int(day_key)
+            if day < 1 or day > num_days:
+                continue
+            if raw_value in ("", None):
+                continue
+
+            value = float(raw_value)
+            if value < 0 or value > 24:
+                raise ValueError("Daily hours must be between 0 and 24.")
+            hours[str(day)] = value
+
+        cleaned.append(
+            {
+                "sr": i + 1,
+                "category": _clean_text(act_data.get("category")),
+                "sub": _clean_text(act_data.get("sub"), 500),
+                "id": _clean_text(act_data.get("id"), 100),
+                "hours": hours,
+            }
+        )
+
+    return cleaned
 
 
 def landing_view(request):
@@ -107,13 +154,13 @@ def checkin_checkout_view(request):
     if request.method == "POST":
         action = request.POST.get("action")
 
-        if action == "check_in" and record.check_in is None:
+        if action in {"check_in", "checkin"} and record.check_in is None:
             record.check_in = now
             record.save()
             logger.info(
                 "User %s checked in at %s", request.user.username, now.isoformat()
             )
-        elif action == "check_out" and record.check_out is None and record.check_in:
+        elif action in {"check_out", "checkout"} and record.check_out is None and record.check_in:
             record.check_out = now
             record.save()
             logger.info(
@@ -173,6 +220,29 @@ def checkin_checkout_view(request):
         expected_local = timezone.localtime(expected_dt)
         expected_checkout = expected_local.strftime("%H:%M")
 
+    week_start = today - timedelta(days=today.weekday())
+    weekly_records = list(
+        AttendanceRecord.objects.filter(
+            user=request.user,
+            date__range=(week_start, today),
+            check_in__isnull=False,
+        )
+    )
+    completed_week_records = [r for r in weekly_records if r.check_out]
+    weekly_total = round(
+        sum(
+            max((r.check_out - r.check_in).total_seconds() / 3600.0, 0)
+            for r in completed_week_records
+        ),
+        1,
+    )
+    weekly_total_percent = min(int((weekly_total / WEEKLY_TARGET) * 100), 100) if WEEKLY_TARGET else 0
+    week_completion_percent = (
+        min(int((len(completed_week_records) / len(weekly_records)) * 100), 100)
+        if weekly_records
+        else 0
+    )
+
     context = {
         "record": record,
         "hours_today": hours_today,
@@ -184,20 +254,12 @@ def checkin_checkout_view(request):
         "upcoming_holidays": list(
             Holiday.objects.filter(date__gte=today).order_by("date")[:3]
         ),
-        "weekly_total": round(
-            sum(
-                max((r.check_out - r.check_in).total_seconds() / 3600.0, 0)
-                for r in AttendanceRecord.objects.filter(
-                    user=request.user,
-                    date__range=(today - timedelta(days=today.weekday()), today),
-                    check_in__isnull=False,
-                    check_out__isnull=False,
-                )
-            ),
-            1,
-        ),
+        "weekly_total": weekly_total,
         "weekly_target": WEEKLY_TARGET,
-        "weekly_total_percent": min(int((round(sum(max((r.check_out - r.check_in).total_seconds()/3600.0, 0) for r in AttendanceRecord.objects.filter(user=request.user, date__range=(today - timedelta(days=today.weekday()), today), check_in__isnull=False, check_out__isnull=False)), 1) / WEEKLY_TARGET) * 100), 100),
+        "weekly_total_percent": weekly_total_percent,
+        "week_completed_days": len(completed_week_records),
+        "week_recorded_days": len(weekly_records),
+        "week_completion_percent": week_completion_percent,
         "recent_records": AttendanceRecord.objects.filter(user=request.user, date__lt=today).order_by("-date")[:5],
         "is_leave": bool(record.leave_type),
     }
@@ -296,14 +358,20 @@ def month_calendar_view(request):
 
     today = timezone.localtime(timezone.now()).date()
     if year_val and month_val:
-        year = int(year_val)
-        month = int(month_val)
-        current = date(year, month, 1)
+        try:
+            year = int(year_val)
+            month = int(month_val)
+            if month < 1 or month > 12:
+                raise ValueError
+            current = date(year, month, 1)
+        except (TypeError, ValueError):
+            current = date(today.year, today.month, 1)
+            year, month = today.year, today.month
     else:
         current = date(today.year, today.month, 1)
         year, month = today.year, today.month
 
-    cal = calendar.Calendar(firstweekday=6)
+    cal = calendar.Calendar(firstweekday=0)
     month_weeks_raw = cal.monthdatescalendar(year, month)
 
     records = AttendanceRecord.objects.filter(
@@ -438,10 +506,19 @@ def holiday_list_view(request):
 
 @login_required
 def month_excel_export_view(request):
-    year = int(request.GET.get("year", timezone.now().year))
-    month = int(request.GET.get("month", timezone.now().month))
+    today = timezone.localtime(timezone.now()).date()
+    try:
+        year = int(request.GET.get("year", today.year))
+        month = int(request.GET.get("month", today.month))
+        if month < 1 or month > 12:
+            raise ValueError
+    except (TypeError, ValueError):
+        year, month = today.year, today.month
     qs = AttendanceRecord.objects.filter(user=request.user, date__year=year, date__month=month).values("date", "check_in", "check_out", "is_holiday", "allowance_hours", "leave_type")
     df = pd.DataFrame(list(qs))
+    for col in ("check_in", "check_out"):
+        if col in df.columns and not df.empty:
+            df[col] = pd.to_datetime(df[col], utc=True, errors="coerce").dt.tz_convert(settings.TIME_ZONE).dt.tz_localize(None)
     output = BytesIO()
     with pd.ExcelWriter(output, engine="openpyxl") as writer:
         (df if not df.empty else pd.DataFrame()).to_excel(writer, index=False, sheet_name="Attendance")
@@ -528,7 +605,9 @@ def timesheet_view(request):
     try:
         year = int(request.GET.get('year', today.year))
         month = int(request.GET.get('month', today.month))
-    except:
+        if month < 1 or month > 12:
+            raise ValueError
+    except (TypeError, ValueError):
         year, month = today.year, today.month
 
     current = date(year, month, 1)
@@ -562,9 +641,18 @@ def timesheet_view(request):
         return {'in': ci_local.strftime('%H:%M'), 'out': co_local.strftime('%H:%M')}
 
     if request.method == 'POST' and request.POST.get('action') == 'save_timesheet':
-        activities_json = request.POST.get('activities_data')
+        activities_json = request.POST.get('activities_data', '')
         if activities_json:
-            activities_list = json.loads(activities_json)
+            try:
+                activities_list = _clean_timesheet_activities(
+                    json.loads(activities_json),
+                    num_days,
+                )
+            except (TypeError, ValueError, json.JSONDecodeError) as exc:
+                logger.warning("Invalid timesheet payload from %s: %s", request.user.username, exc)
+                messages.error(request, "Timesheet data could not be saved. Please review the entries and try again.")
+                return redirect(f"{reverse('timesheet')}?year={year}&month={month}")
+
             with transaction.atomic():
                 TimesheetActivity.objects.filter(user=request.user, year=year, month=month).delete()
                 for i, act_data in enumerate(activities_list):
@@ -594,7 +682,7 @@ def timesheet_view(request):
     db_activities = list(TimesheetActivity.objects.filter(user=request.user, year=year, month=month))
     
     if not db_activities:
-        for i, (a, s) in enumerate([("Support", "Support KT"), ("Development", "Analysis"), ("Development", "Testing")], 1):
+        for i, (a, s) in enumerate([("Support", "Support"), ("Support", "KT"), ("Development/Analysis/Testing", "Development"), ("Development/Analysis/Testing", "Analysis"), ("Development/Analysis/Testing", "Testing")], 1):
             TimesheetActivity.objects.create(user=request.user, year=year, month=month, srno=i, activity=a, sub_activity=s)
         db_activities = list(TimesheetActivity.objects.filter(user=request.user, year=year, month=month))
 
@@ -618,13 +706,19 @@ def timesheet_view(request):
     prev_m = (current - timedelta(days=1)).replace(day=1)
     next_m = (current + timedelta(days=32)).replace(day=1)
 
+    timesheet_context = {
+        'year': year,
+        'month': month,
+        'time_map': time_map,
+        'activities': formatted_activities,
+        'holidays': holiday_map,
+    }
+
     context = {
         'year': year, 'month': month, 'month_name': current.strftime('%B'),
         'prev_year': prev_m.year, 'prev_month': prev_m.month,
         'next_year': next_m.year, 'next_month': next_m.month,
-        'sample_data_json': json.dumps(time_map),
-        'activities_json': json.dumps(formatted_activities),
-        'holidays_json': json.dumps(holiday_map),
+        'timesheet_context': timesheet_context,
     }
     return render(request, 'attendance/timesheet_v2.html', context)
 
@@ -636,8 +730,13 @@ def timesheet_export_view(request):
     from openpyxl.utils import get_column_letter
 
     today = timezone.localtime(timezone.now()).date()
-    year = int(request.GET.get('year', today.year))
-    month = int(request.GET.get('month', today.month))
+    try:
+        year = int(request.GET.get('year', today.year))
+        month = int(request.GET.get('month', today.month))
+        if month < 1 or month > 12:
+            raise ValueError
+    except (TypeError, ValueError):
+        year, month = today.year, today.month
     num_days = calendar.monthrange(year, month)[1]
     days = list(range(1, num_days + 1))
 
@@ -649,26 +748,126 @@ def timesheet_export_view(request):
     wb = openpyxl.Workbook()
     ws = wb.active
     ws.title = 'Timesheet'
-    
-    label_font = Font(bold=True, size=10)
-    center = Alignment(horizontal='center', vertical='center')
-    
-    ws.cell(1, 1, "Sr").font = label_font
-    ws.cell(1, 2, "Activity").font = label_font
-    ws.cell(1, 3, "Sub Activity").font = label_font
-    ws.cell(1, 4, "Artifact ID").font = label_font
-    
-    for d in days:
-        ws.cell(1, 4 + d, d).font = label_font
-        ws.cell(1, 4 + d).alignment = center
 
-    for i, act in enumerate(activities, 2):
-        ws.cell(i, 1, act.srno)
-        ws.cell(i, 2, act.activity)
-        ws.cell(i, 3, act.sub_activity)
-        ws.cell(i, 4, act.artifact_id)
+    header_fill = PatternFill("solid", fgColor="002060")
+    date_fill = PatternFill("solid", fgColor="FFC000")
+    leave_fill = PatternFill("solid", fgColor="FFFF00")
+    total_fill = PatternFill("solid", fgColor="D9EAD3")
+    white_fill = PatternFill("solid", fgColor="FFFFFF")
+    thin_gray = Side(style="thin", color="B7B7B7")
+    border = Border(left=thin_gray, right=thin_gray, top=thin_gray, bottom=thin_gray)
+    label_font = Font(name="Calibri", bold=True, size=10, color="FFFFFF")
+    dark_label_font = Font(name="Calibri", bold=True, size=10, color="000000")
+    normal_font = Font(name="Calibri", size=10, color="000000")
+    center = Alignment(horizontal='center', vertical='center', wrap_text=True)
+    left_wrap = Alignment(horizontal='left', vertical='center', wrap_text=True)
+
+    ws.freeze_panes = "F7"
+    ws.sheet_view.showGridLines = False
+
+    fixed_headers = ["Srno", "Activity", "Sub Activity", "Comments", "artfact ID/Problem id/Incident ID"]
+    for col, header in enumerate(fixed_headers, 1):
+        cell = ws.cell(1, col, header)
+        cell.font = label_font
+        cell.fill = header_fill
+        cell.alignment = center
+        cell.border = border
+
+    for d in days:
+        col = 5 + d
+        day_date = date(year, month, d)
+        cell = ws.cell(1, col, day_date)
+        cell.font = dark_label_font
+        cell.fill = date_fill
+        cell.alignment = center
+        cell.border = border
+        cell.number_format = "d-mmm"
+
+    leaves_col = 6 + num_days
+    leaves_header = ws.cell(1, leaves_col, "Leaves")
+    leaves_header.font = dark_label_font
+    leaves_header.fill = leave_fill
+    leaves_header.alignment = center
+    leaves_header.border = border
+
+    time_labels = [("In Time", "in_time"), ("Out Time", "out_time"), ("Total Time", "total_time"), ("ESA Time", "esa_time")]
+    for row_idx, (label, key) in enumerate(time_labels, 2):
+        label_cell = ws.cell(row_idx, 4, label)
+        label_cell.font = dark_label_font
+        label_cell.alignment = center
+        label_cell.border = border
+        for d in days:
+            col = 5 + d
+            entry = time_map.get(d)
+            value = entry.get(key) if entry else None
+            cell = ws.cell(row_idx, col, value)
+            cell.font = normal_font
+            cell.alignment = center
+            cell.border = border
+        ws.cell(row_idx, leaves_col).border = border
+
+    activity_start_row = 7
+    for row_offset, act in enumerate(activities):
+        row = activity_start_row + row_offset
+        values = [
+            row_offset + 1,
+            act.activity,
+            act.sub_activity,
+            act.comments,
+            act.artifact_id,
+        ]
+        for col, value in enumerate(values, 1):
+            cell = ws.cell(row, col, value)
+            cell.font = normal_font
+            cell.alignment = center if col in (1,) else left_wrap
+            cell.fill = white_fill
+            cell.border = border
+
         for d_str, val in act.daily_hours.items():
-            ws.cell(i, 4 + int(d_str), val)
+            try:
+                day = int(d_str)
+            except (TypeError, ValueError):
+                continue
+            if day < 1 or day > num_days:
+                continue
+            cell = ws.cell(row, 5 + day, val)
+            cell.font = normal_font
+            cell.alignment = center
+            cell.border = border
+        for d in days:
+            ws.cell(row, 5 + d).border = border
+        ws.cell(row, leaves_col).border = border
+
+    total_row = activity_start_row + max(len(activities), 1)
+    total_label = ws.cell(total_row, 5, "TOTAL")
+    total_label.font = dark_label_font
+    total_label.fill = total_fill
+    total_label.alignment = center
+    total_label.border = border
+    for d in days:
+        col = 5 + d
+        col_letter = get_column_letter(col)
+        cell = ws.cell(total_row, col, f"=SUM({col_letter}{activity_start_row}:{col_letter}{total_row - 1})")
+        cell.font = dark_label_font
+        cell.fill = total_fill
+        cell.alignment = center
+        cell.border = border
+    ws.cell(total_row, leaves_col).border = border
+
+    for row in range(1, total_row + 1):
+        for col in range(1, leaves_col + 1):
+            ws.cell(row, col).border = border
+
+    ws.column_dimensions["A"].width = 8
+    ws.column_dimensions["B"].width = 26
+    ws.column_dimensions["C"].width = 18
+    ws.column_dimensions["D"].width = 34
+    ws.column_dimensions["E"].width = 24
+    for col in range(6, leaves_col + 1):
+        ws.column_dimensions[get_column_letter(col)].width = 11
+    ws.row_dimensions[1].height = 52
+    for row in range(activity_start_row, total_row):
+        ws.row_dimensions[row].height = 36
 
     output = BytesIO()
     wb.save(output)
