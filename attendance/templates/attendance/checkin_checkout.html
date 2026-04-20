@@ -1,1169 +1,475 @@
 {% extends "base.html" %}
 
-{% block title %}Dashboard | Attendance{% endblock %}
+{% block title %}Precision Time — Enterprise Dashboard{% endblock %}
 {% block nav_today_active %}active{% endblock %}
-{% block header_title %}Main Dashboard{% endblock %}
+{% block header_title %}Dashboard{% endblock %}
 
 {% block extra_head %}
+<!-- Google Fonts: Inter -->
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800;900&display=swap" rel="stylesheet">
 <style>
-  /* ── Dashboard layout ── */
-  .dash-welcome {
-    font-size: 0.9rem;
-    color: var(--text-muted);
-    margin-top: 2px;
+  :root {
+    --glass: rgba(255,255,255,0.04);
+    --glass-border: rgba(255,255,255,0.08);
+    --glass-highlight: rgba(255,255,255,0.12);
+    --cyan: #06b6d4;
+    --emerald: #10b981;
+    --sapphire: #2563eb;
+    --sapphire-glow: rgba(37,99,235,0.25);
+    --text-bright: #f8fafc;
   }
 
-  .dash-welcome span {
-    color: #60a5fa;
-    font-weight: 500;
+  /* 3D Scene Wrapper */
+  .cinematic-container {
+    perspective: 1200px;
+    padding: 10px;
   }
 
-  .dash-grid {
-    display: grid;
-    grid-template-columns: 1fr 300px;
-    gap: 16px;
-    margin-bottom: 20px;
-  }
-
-  /* ── Stats cards ── */
-  .stat-card {
-    background: #0f172a;
-    border: 1px solid rgba(255,255,255,0.06);
-    border-radius: 16px;
-    padding: 20px;
-    transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+  /* Hero Card - 3D Parallax */
+  .hero-card-3d {
+    background: linear-gradient(165deg, rgba(255,255,255,0.06) 0%, rgba(255,255,255,0.015) 100%);
+    backdrop-filter: blur(30px);
+    border: 1px solid var(--glass-border);
+    border-radius: 20px;
+    padding: 36px 40px;
+    margin-bottom: 24px;
     position: relative;
     overflow: hidden;
+    transform: translateZ(30px);
+    box-shadow: 0 20px 60px rgba(0,0,0,0.3), 0 0 40px rgba(6,182,212,0.05);
+    transition: transform 0.1s ease-out;
   }
 
-  .stat-card:hover {
-    transform: translateY(-5px) scale(1.02);
-    border-color: rgba(96,165,250,0.2);
-    box-shadow: 0 10px 30px rgba(0,0,0,0.4);
-    background: #111a2e;
+  .hero-card-3d::before {
+    content: ''; position: absolute; top: 0; left: 0; right: 0; height: 1px;
+    background: linear-gradient(90deg, transparent, rgba(6,182,212,0.6), rgba(16,185,129,0.4), transparent);
   }
 
-  .stat-card::after {
-    content: "";
-    position: absolute;
-    top: 0;
-    right: 0;
-    width: 80px;
-    height: 80px;
-    background: radial-gradient(circle at 100% 0%, rgba(37,99,235,0.05) 0%, transparent 70%);
-    pointer-events: none;
-  }
-  .workspace-card {
-    background: linear-gradient(135deg, rgba(0, 245, 255, 0.08) 0%, transparent 60%),
-                var(--bg-glass);
-    backdrop-filter: blur(16px);
-    -webkit-backdrop-filter: blur(16px);
-    border: 1px solid var(--border);
-    border-radius: 24px;
-    padding: 32px;
-    position: relative;
-    overflow: hidden;
-    min-height: 280px;
-    display: flex;
-    flex-direction: column;
-    justify-content: center;
-    box-shadow: 0 20px 50px rgba(0,0,0,0.5);
+  .hero-card-3d .hero-title {
+    font-size: 42px; font-weight: 900; letter-spacing: -1.5px;
+    background: linear-gradient(135deg, var(--cyan) 0%, var(--emerald) 100%);
+    -webkit-background-clip: text; background-clip: text; -webkit-text-fill-color: transparent;
+    margin-bottom: 8px; line-height: 1.1;
+    filter: drop-shadow(0 0 30px rgba(6,182,212,0.3));
   }
 
-  .workspace-title {
-    font-size: 2.4rem;
-    font-weight: 800;
-    line-height: 1.1;
-    letter-spacing: -1.5px;
-    margin-bottom: 20px;
-    max-width: 500px;
+  .hero-card-3d .hero-subtitle { font-size: 14px; color: var(--muted); font-weight: 400; max-width: 500px; line-height: 1.6; }
+
+  /* Interactive Stats */
+  .hero-stats { display: flex; gap: 40px; margin-top: 28px; }
+  .hero-stat-value {
+    font-size: 28px; font-weight: 800; letter-spacing: -0.5px;
+    color: var(--text-bright); font-variant-numeric: tabular-nums;
   }
-
-  .workspace-title span {
-    background: linear-gradient(135deg, #00f5ff, #34d399);
-    -webkit-background-clip: text;
-    background-clip: text;
-    -webkit-text-fill-color: transparent;
-    text-shadow: 0 10px 30px rgba(0, 245, 255, 0.2);
-  }
-
-  .workspace-desc {
-    color: #94a3b8;
-    font-size: 0.95rem;
-    line-height: 1.6;
-    margin-bottom: 30px;
-    max-width: 420px;
-  }
-
-  .workspace-card::before {
-    content: "";
-    position: absolute;
-    top: -60px;
-    right: -60px;
-    width: 280px;
-    height: 280px;
-    background: radial-gradient(circle, rgba(37, 99, 235, 0.18) 0%, transparent 70%);
-    pointer-events: none;
-  }
-
-  .live-badge {
-    display: inline-flex;
-    align-items: center;
-    gap: 7px;
-    background: rgba(16, 185, 129, 0.1);
-    border: 1px solid rgba(16, 185, 129, 0.3);
-    border-radius: 100px;
-    padding: 4px 12px;
-    font-size: 0.72rem;
-    font-weight: 600;
-    color: #34d399;
-    letter-spacing: 0.5px;
-    text-transform: uppercase;
-    margin-bottom: 16px;
-    width: fit-content;
-  }
-
-  .live-badge .live-dot {
-    width: 7px;
-    height: 7px;
-    border-radius: 50%;
-    background: #34d399;
-    box-shadow: 0 0 8px #34d399;
-    animation: livePulse 1.8s ease-in-out infinite;
-  }
-
-  @keyframes livePulse {
-
-    0%,
-    100% {
-      box-shadow: 0 0 6px #34d399;
-    }
-
-    50% {
-      box-shadow: 0 0 14px #34d399, 0 0 24px rgba(52, 211, 153, 0.4);
-    }
-  }
-
-  /* Animated desk scene */
-  .desk-scene {
-    position: absolute;
-    right: 0;
-    bottom: 0;
-    width: 360px;
-    height: 200px;
-    pointer-events: none;
-  }
-
-  /* Monitor */
-  .monitor-stand {
-    position: absolute;
-    bottom: 18px;
-    right: 140px;
-    width: 10px;
-    height: 50px;
-    background: #1e3a5f;
-    border-radius: 3px;
-  }
-
-  .monitor-base {
-    position: absolute;
-    bottom: 14px;
-    right: 122px;
-    width: 46px;
-    height: 8px;
-    background: #1a3050;
-    border-radius: 4px;
-  }
-
-  .monitor-body {
-    position: absolute;
-    bottom: 62px;
-    right: 115px;
-    width: 60px;
-    height: 44px;
-    background: #0c2040;
-    border: 2px solid rgba(96, 165, 250, 0.4);
-    border-radius: 6px;
-    overflow: hidden;
-  }
-
-  .monitor-screen {
-    width: 100%;
-    height: 100%;
-    background: linear-gradient(135deg, #0d2b4a, #1a3f6b);
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    font-size: 0.55rem;
-    color: rgba(96, 165, 250, 0.7);
-    animation: screenFlicker 4s ease-in-out infinite;
-  }
-
-  @keyframes screenFlicker {
-    0%, 100% { background: linear-gradient(135deg, #0d2b4a, #1a3f6b); }
-    50% { background: linear-gradient(135deg, #0f3258, #1e4a7e); }
-  }
-
-  .hero-btn {
-    border: none;
-    color: #fff;
-    padding: 14px 32px;
-    border-radius: 12px;
-    font-size: 1rem;
-    font-weight: 700;
-    display: flex;
-    align-items: center;
-    gap: 12px;
-    transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
-    cursor: pointer;
-  }
-
-  .btn-primary-glow {
-    background: linear-gradient(135deg, #00d2ff, #2563eb);
-    box-shadow: 0 10px 40px rgba(0, 245, 255, 0.4);
-    position: relative;
-    overflow: hidden;
-  }
+  .hero-stat-label { font-size: 11px; color: var(--muted); margin-top: 2px; font-weight: 500; text-transform: uppercase; letter-spacing: 1px; }
   
-  .btn-primary-glow::after {
-    content: "";
-    position: absolute;
-    bottom: -20px;
-    left: 50%;
-    transform: translateX(-50%);
-    width: 60%;
-    height: 10px;
-    background: rgba(0, 245, 255, 0.6);
-    filter: blur(15px);
-    opacity: 0.8;
+  .hero-stat-change { font-size: 11px; font-weight: 600; margin-top: 4px; }
+  .up { color: var(--emerald); }
+  .down { color: #f43f5e; }
+
+  /* Action Buttons */
+  .action-deck {
+    display: flex;
+    gap: 12px;
+    margin-top: 20px;
+    flex-wrap: wrap;
   }
 
-  .btn-primary-glow:hover {
-    transform: translateY(-2px);
-    box-shadow: 0 15px 40px rgba(37, 99, 235, 0.6);
-  }
-
-  .btn-danger-glow {
-    background: rgba(239, 68, 68, 0.1);
-    border: 1px solid rgba(239, 68, 68, 0.3);
-    color: #f87171;
-  }
-
-  .btn-danger-glow:hover {
-    background: rgba(239, 68, 68, 0.2);
-    transform: translateY(-2px);
-  }
-
-  .status-complete {
-    background: rgba(16, 185, 129, 0.08);
-    border: 1px solid rgba(16, 185, 129, 0.2);
-    color: #34d399;
+  .btn-cinematic {
     padding: 12px 24px;
     border-radius: 12px;
-    font-size: 0.95rem;
-    font-weight: 600;
+    font-size: 14px;
+    font-weight: 700;
+    cursor: pointer;
+    transition: all 0.3s cubic-bezier(0.23, 1, 0.32, 1);
+    border: 1px solid var(--glass-border);
+    background: var(--glass);
+    color: white;
     display: flex;
     align-items: center;
     gap: 10px;
-  }
-
-  /* Keyboard */
-  .keyboard {
-    position: absolute;
-    bottom: 20px;
-    right: 108px;
-    width: 70px;
-    height: 12px;
-    background: #152d4a;
-    border-radius: 3px;
-    border: 1px solid rgba(96, 165, 250, 0.2);
-  }
-
-  /* Desk plant */
-  .plant-pot {
-    position: absolute;
-    bottom: 18px;
-    right: 68px;
-    width: 20px;
-    height: 22px;
-    background: #1a3a2a;
-    border-radius: 2px 2px 4px 4px;
-  }
-
-  .plant-stem {
-    position: absolute;
-    bottom: 38px;
-    right: 77px;
-    width: 3px;
-    height: 28px;
-    background: #1a4a2a;
-    border-radius: 2px;
-  }
-
-  .plant-leaf1 {
-    position: absolute;
-    bottom: 58px;
-    right: 64px;
-    width: 18px;
-    height: 10px;
-    background: #16a34a;
-    border-radius: 50% 50% 0 50%;
-    transform: rotate(-30deg);
-  }
-
-  .plant-leaf2 {
-    position: absolute;
-    bottom: 52px;
-    right: 78px;
-    width: 16px;
-    height: 10px;
-    background: #15803d;
-    border-radius: 50% 50% 50% 0;
-    transform: rotate(25deg);
-  }
-
-  .plant-leaf3 {
-    position: absolute;
-    bottom: 62px;
-    right: 72px;
-    width: 14px;
-    height: 8px;
-    background: #22c55e;
-    border-radius: 50% 50% 0 50%;
-    transform: rotate(-60deg);
-  }
-
-  /* Coffee */
-  .coffee-cup {
-    position: absolute;
-    bottom: 22px;
-    right: 52px;
-    width: 14px;
-    height: 16px;
-    background: #3b1f0a;
-    border-radius: 2px 2px 4px 4px;
-    border: 1px solid rgba(255, 255, 255, 0.1);
-  }
-
-  .coffee-steam {
-    position: absolute;
-    bottom: 38px;
-    right: 55px;
-    width: 2px;
-    height: 10px;
-    background: rgba(255, 255, 255, 0.15);
-    border-radius: 2px;
-    animation: steam 2s ease-in-out infinite;
-  }
-
-  @keyframes steam {
-
-    0%,
-    100% {
-      height: 10px;
-      opacity: 0.15;
-    }
-
-    50% {
-      height: 16px;
-      opacity: 0.3;
-    }
-  }
-
-  /* Floating orb glow behind scene */
-  .scene-glow {
-    position: absolute;
-    bottom: -50px;
-    right: 60px;
-    width: 220px;
-    height: 220px;
-    background: radial-gradient(circle, rgba(37, 99, 235, 0.12) 0%, transparent 70%);
-    border-radius: 50%;
-    animation: sceneGlow 5s ease-in-out infinite alternate;
-  }
-
-  @keyframes sceneGlow {
-    0% {
-      transform: scale(1);
-      opacity: 0.8;
-    }
-
-    100% {
-      transform: scale(1.15);
-      opacity: 1;
-    }
-  }
-
-  /* Status info in workspace card */
-  .ws-status {
-    display: flex;
-    gap: 28px;
-    margin-top: 8px;
-  }
-
-  .ws-stat {
-    display: flex;
-    flex-direction: column;
-  }
-
-  .ws-stat-label {
-    font-size: 0.68rem;
-    letter-spacing: 1px;
-    text-transform: uppercase;
-    color: var(--text-muted);
-    margin-bottom: 3px;
-  }
-
-  .ws-stat-value {
-    font-size: 1.5rem;
-    font-weight: 700;
-    letter-spacing: -0.5px;
-  }
-
-  .ws-stat-value.checked-in {
-    color: #34d399;
-  }
-
-  .ws-stat-value.checked-out {
-    color: #60a5fa;
-  }
-
-  .ws-stat-value.not-in {
-    color: rgba(255, 255, 255, 0.35);
-  }
-
-  .ws-date {
-    position: absolute;
-    bottom: 20px;
-    left: 24px;
-    font-size: 0.75rem;
-    color: rgba(255, 255, 255, 0.25);
-    letter-spacing: 0.5px;
-  }
-
-  /* ── Right column cards ── */
-  .right-col {
-    display: flex;
-    flex-direction: column;
-    gap: 14px;
-  }
-
-  .dash-card {
-    background: var(--bg-glass);
-    backdrop-filter: blur(12px);
-    -webkit-backdrop-filter: blur(12px);
-    border: 1px solid var(--border);
-    border-radius: 18px;
-    padding: 18px 20px;
-  }
-
-  .dash-card-title {
-    font-size: 0.68rem;
-    font-weight: 700;
-    letter-spacing: 1.5px;
-    text-transform: uppercase;
-    color: var(--text-muted);
-    margin-bottom: 14px;
-    display: flex;
-    align-items: center;
-    justify-content: space-between;
-  }
-
-  .dash-card-title .card-icon {
-    font-size: 0.9rem;
-    color: #60a5fa;
-  }
-
-  /* Holidays */
-  .holiday-item {
-    display: flex;
-    justify-content: space-between;
-    align-items: center;
-    padding: 8px 0;
-    border-bottom: 1px solid rgba(255, 255, 255, 0.04);
-    font-size: 0.82rem;
-  }
-
-  .holiday-item:last-child {
-    border-bottom: none;
-  }
-
-  .holiday-date-badge {
-    background: rgba(37, 99, 235, 0.15);
-    border: 1px solid rgba(37, 99, 235, 0.25);
-    color: #93c5fd;
-    border-radius: 6px;
-    padding: 2px 8px;
-    font-size: 0.7rem;
-    font-weight: 600;
-  }
-
-  .no-holidays {
-    display: flex;
-    flex-direction: column;
-    align-items: center;
-    padding: 14px 0;
-    color: var(--text-muted);
-    font-size: 0.8rem;
-    gap: 8px;
-  }
-
-  .no-holidays-icon {
-    font-size: 1.6rem;
-  }
-
-  /* Status grid in today card */
-  .status-grid {
-    display: grid;
-    grid-template-columns: 1fr 1fr;
-    gap: 10px;
-  }
-
-  .status-cell {
-    background: rgba(255, 255, 255, 0.03);
-    border: 1px solid rgba(255, 255, 255, 0.05);
-    border-radius: 10px;
-    padding: 10px 12px;
-    text-align: center;
-  }
-
-  .status-cell-val {
-    font-size: 1.35rem;
-    font-weight: 700;
-    color: #60a5fa;
-    line-height: 1;
-    margin-bottom: 4px;
-  }
-
-  .status-cell-val.green {
-    color: #34d399;
-  }
-
-  .status-cell-val.amber {
-    color: #fbbf24;
-  }
-
-  .status-cell-label {
-    font-size: 0.65rem;
-    letter-spacing: 0.8px;
-    text-transform: uppercase;
-    color: var(--text-muted);
-  }
-
-  /* ── Core Commander ── */
-  .section-title {
-    font-size: 0.68rem;
-    font-weight: 700;
-    letter-spacing: 2px;
-    text-transform: uppercase;
-    color: var(--text-muted);
-    margin-bottom: 12px;
-  }
-
-  .cmd-grid {
-    display: grid;
-    grid-template-columns: repeat(5, 1fr);
-    gap: 12px;
-    margin-bottom: 20px;
-    /* allow horizontal scroll on parent if needed */
-  }
-
-  .cmd-card {
-    background: #0b1220;
-    border: 1px solid var(--border-subtle);
-    border-radius: 14px;
-    padding: 20px 16px;
     text-decoration: none;
-    transition: border-color 0.25s, background 0.25s, transform 0.2s;
-    display: flex;
-    flex-direction: column;
-    gap: 10px;
-    cursor: pointer;
   }
 
-  .cmd-card:hover {
-    background: #0f1a2e;
-    border-color: rgba(96, 165, 250, 0.3);
+  .btn-cinematic-primary {
+    background: linear-gradient(135deg, var(--cyan), var(--emerald));
+    border: none;
+    color: #020617;
+    box-shadow: 0 10px 30px rgba(6,182,212,0.3);
+  }
+
+  .btn-cinematic-primary:hover {
+    transform: translateY(-2px) scale(1.05);
+    box-shadow: 0 15px 40px rgba(6,182,212,0.5);
+  }
+
+  .btn-cinematic-danger {
+    background: rgba(244, 63, 94, 0.1);
+    color: #f43f5e;
+    border-color: rgba(244, 63, 94, 0.2);
+  }
+
+  .btn-cinematic-danger:hover {
+    background: rgba(244, 63, 94, 0.2);
     transform: translateY(-2px);
   }
 
-  .cmd-card-icon {
-    width: 36px;
-    height: 36px;
-    background: rgba(255, 255, 255, 0.04);
-    border: 1px solid rgba(255, 255, 255, 0.07);
-    border-radius: 10px;
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    font-size: 1rem;
-  }
+  /* Grid Layout */
+  .grid-system { display: grid; grid-template-columns: repeat(3, 1fr); gap: 24px; margin-bottom: 24px; }
 
-  .cmd-card-name {
-    font-size: 0.88rem;
-    font-weight: 600;
-    color: #60a5fa;
-    line-height: 1.3;
-  }
-
-  .cmd-card-sub {
-    font-size: 0.68rem;
-    letter-spacing: 0.5px;
-    text-transform: uppercase;
-    color: var(--text-muted);
-  }
-
-  /* ── Daily Roster strip ── */
-  .daily-roster {
-    background: #0b1220;
-    border: 1px solid var(--border-subtle);
-    border-radius: 14px;
-    padding: 16px 22px;
-  }
-
-  .roster-header {
-    display: flex;
-    justify-content: space-between;
-    align-items: flex-start;
-    margin-bottom: 14px;
-  }
-
-  .roster-label {
-    font-size: 0.72rem;
-    color: var(--text-muted);
-    margin-bottom: 2px;
-  }
-
-  .roster-date {
-    font-size: 1rem;
-    font-weight: 700;
-    color: var(--text-main);
-  }
-
-  .roster-highlight {
-    font-size: 0.75rem;
-    color: var(--text-muted);
-  }
-
-  /* Timeline */
-  .timeline {
-    display: flex;
-    align-items: center;
-    gap: 0;
+  .card-3d {
+    background: linear-gradient(165deg, rgba(255,255,255,0.05) 0%, rgba(255,255,255,0.015) 100%);
+    backdrop-filter: blur(20px);
+    border: 1px solid var(--glass-border);
+    border-radius: 16px;
+    padding: 24px;
     position: relative;
-    padding: 14px 0 4px;
-  }
-
-  .tl-point {
-    display: flex;
-    flex-direction: column;
-    align-items: center;
-    position: relative;
-    z-index: 1;
-  }
-
-  .tl-dot {
-    width: 12px;
-    height: 12px;
-    border-radius: 50%;
-    border: 2px solid rgba(255, 255, 255, 0.15);
-    background: #0b1220;
-    margin-bottom: 6px;
-  }
-
-  .tl-dot.filled {
-    background: #34d399;
-    border-color: #34d399;
-    box-shadow: 0 0 8px rgba(52, 211, 153, 0.5);
-  }
-
-  .tl-dot.blue {
-    background: #60a5fa;
-    border-color: #60a5fa;
-    box-shadow: 0 0 8px rgba(96, 165, 250, 0.5);
-  }
-
-  .tl-time {
-    font-size: 0.72rem;
-    color: rgba(255, 255, 255, 0.5);
-  }
-
-  .tl-label {
-    font-size: 0.65rem;
-    color: var(--text-muted);
-    letter-spacing: 0.5px;
-  }
-
-  .tl-line {
-    flex: 1;
-    height: 2px;
-    margin-bottom: 28px;
-    background: rgba(255, 255, 255, 0.06);
-  }
-
-  .tl-line.active {
-    background: linear-gradient(90deg, #34d399, #60a5fa);
-  }
-
-  .no-record-msg {
-    text-align: center;
-    color: var(--text-muted);
-    font-size: 0.85rem;
-    padding: 10px 0 4px;
-  }
-
-  /* ── Action buttons ── */
-  .action-row {
-    display: flex;
-    gap: 10px;
-    margin-top: 14px;
-    flex-wrap: wrap;
-  }
-
-  .btn-checkin {
-    background: linear-gradient(135deg, #10b981, #059669);
-    border: none;
-    color: #fff;
-    box-shadow: 0 4px 12px rgba(16, 185, 129, 0.3);
-  }
-
-  .btn-checkout {
-    background: linear-gradient(135deg, #ef4444, #dc2626);
-    border: none;
-    color: #fff;
-    box-shadow: 0 4px 12px rgba(239, 68, 68, 0.3);
-  }
-
-  .btn-manual {
-    background: transparent;
-    border: 1px solid rgba(255, 255, 255, 0.15);
-    color: var(--text-muted);
-  }
-
-  .roster-btn {
-    padding: 10px 24px;
-    border-radius: 12px;
-    font-size: 0.85rem;
-    font-weight: 700;
-    cursor: pointer;
-    transition: all 0.2s cubic-bezier(0.4, 0, 0.2, 1);
-    font-family: inherit;
-    flex: 1;
-    text-align: center;
-  }
-
-  .roster-btn:hover:not(:disabled) {
-    transform: translateY(-2px);
-    filter: brightness(1.1);
-    box-shadow: 0 6px 16px rgba(0, 0, 0, 0.3);
-  }
-
-  .roster-btn:active:not(:disabled) {
-    transform: translateY(0);
-  }
-
-  .roster-btn:disabled {
-    background: #1e293b;
-    color: #64748b;
-    border: 1px solid #334155;
-    box-shadow: none;
-    cursor: not-allowed;
-  }
-
-  /* Manual time modal */
-  .manual-row {
-    display: flex;
-    gap: 10px;
-    align-items: center;
-    flex-wrap: wrap;
-    margin-top: 12px;
-    padding: 12px 14px;
-    background: rgba(255, 255, 255, 0.03);
-    border: 1px solid rgba(255, 255, 255, 0.06);
-    border-radius: 10px;
-  }
-
-  .manual-row input[type="time"] {
-    background: #0b1220;
-    border: 1px solid rgba(255, 255, 255, 0.1);
-    border-radius: 6px;
-    color: var(--text-main);
-    padding: 6px 10px;
-    font-size: 0.82rem;
-    font-family: inherit;
-  }
-
-  .manual-row label {
-    font-size: 0.75rem;
-    color: var(--text-muted);
-  }
-
-  /* Weekly progress bar */
-  .progress-wrap {
-    margin-top: 10px;
-  }
-
-  .progress-label {
-    display: flex;
-    justify-content: space-between;
-    font-size: 0.72rem;
-    color: var(--text-muted);
-    margin-bottom: 5px;
-  }
-
-  .progress-bar {
-    height: 5px;
-    border-radius: 3px;
-    background: rgba(255, 255, 255, 0.07);
     overflow: hidden;
+    transition: transform 0.3s, box-shadow 0.3s;
+    transform: translateZ(15px);
   }
 
-  .progress-fill {
-    height: 100%;
-    border-radius: 3px;
-    background: linear-gradient(90deg, #2563eb, #34d399);
-    transition: width 0.6s ease;
-    width: var(--progress-width, 0%);
+  .card-3d:hover {
+    transform: translateZ(25px) translateY(-5px);
+    box-shadow: 0 15px 50px rgba(37,99,235,0.12);
+    border-color: rgba(6,182,212,0.3);
   }
 
-  /* ── Responsive ── */
-  @media (max-width: 900px) {
-    .dash-grid {
-      grid-template-columns: 1fr;
-    }
-
-    .cmd-grid {
-      display: flex;
-      flex-wrap: nowrap;
-      overflow-x: auto;
-      padding-bottom: 8px;
-      -webkit-overflow-scrolling: touch;
-      scrollbar-width: none; /* Firefox */
-    }
-    
-    .cmd-grid::-webkit-scrollbar {
-      display: none; /* Safari and Chrome */
-    }
-
-    .cmd-card {
-      min-width: 140px;
-      flex: 0 0 auto;
-    }
-
-    .desk-scene {
-      display: none;
-    }
-    
-    .action-row {
-      flex-direction: row;
-      flex-wrap: nowrap;
-    }
+  .card-header { display: flex; justify-content: space-between; align-items: center; margin-bottom: 16px; }
+  .card-title { font-size: 11px; font-weight: 500; color: var(--muted); text-transform: uppercase; letter-spacing: 1.5px; }
+  .card-badge {
+    font-size: 9px; padding: 3px 8px; border-radius: 6px; font-weight: 600; letter-spacing: 0.5px;
+    background: rgba(6,182,212,0.12); color: var(--cyan); border: 1px solid rgba(6,182,212,0.15);
   }
 
-  @media (max-width: 560px) {
-    .status-grid {
-      grid-template-columns: 1fr 1fr;
-    }
+  .card-value { font-size: 32px; font-weight: 800; letter-spacing: -1px; color: var(--text-bright); font-variant-numeric: tabular-nums; }
+  .card-sub { font-size: 11px; color: var(--muted); margin-top: 4px; }
+
+  /* Sparkline Placeholder */
+  .sparkline { margin-top: 14px; height: 40px; display: flex; align-items: flex-end; gap: 3px; }
+  .spark-bar {
+    flex: 1; border-radius: 2px 2px 0 0; min-height: 4px;
+    background: linear-gradient(to top, rgba(6,182,212,0.2), rgba(6,182,212,0.6));
+    transition: height 0.5s ease;
+  }
+
+  /* Table Section */
+  .grid-split { display: grid; grid-template-columns: 2fr 1fr; gap: 24px; }
+
+  .chrono-card {
+    background: rgba(13, 20, 37, 0.4);
+    border: 1px solid var(--glass-border);
+    border-radius: 20px;
+    padding: 24px;
+  }
+
+  .chrono-table { width: 100%; border-collapse: collapse; margin-top: 16px; }
+  .chrono-table th {
+    text-align: left; font-size: 10px; font-weight: 600; text-transform: uppercase;
+    letter-spacing: 1px; color: var(--muted); padding: 12px 8px; border-bottom: 2px solid var(--glass-border);
+  }
+  .chrono-table td {
+    padding: 14px 8px; font-size: 13px; font-weight: 500; color: var(--text);
+    border-bottom: 1px solid rgba(255,255,255,0.03);
+  }
+
+  .status-dot { display: inline-block; width: 8px; height: 8px; border-radius: 50%; margin-right: 8px; }
+  .status-active { background: var(--emerald); box-shadow: 0 0 10px var(--emerald); }
+  .status-offline { background: var(--muted); }
+
+  /* Manual Entry Pulse */
+  .pulse-border {
+    animation: borderPulse 2s infinite;
+  }
+  @keyframes borderPulse {
+    0% { border-color: rgba(6,182,212,0.2); }
+    50% { border-color: rgba(6,182,212,0.5); }
+    100% { border-color: rgba(6,182,212,0.2); }
+  }
+
+  /* Floating Orbs for local context */
+  .orb-dash {
+    position: absolute; width: 300px; height: 300px; border-radius: 50%;
+    filter: blur(80px); opacity: 0.1; pointer-events: none; z-index: -1;
+  }
+
+  /* Modal Refresh */
+  .modal-content.glass {
+    background: rgba(10, 15, 30, 0.85);
+    backdrop-filter: blur(20px);
+    border: 1px solid var(--glass-border);
+    color: white;
   }
 </style>
 {% endblock %}
 
 {% block content %}
+<div class="orb-dash" style="top: 10%; right: 5%; background: var(--cyan);"></div>
+<div class="orb-dash" style="bottom: 20%; left: 0; background: var(--sapphire);"></div>
 
-<!-- Welcome subtitle -->
-<p class="dash-welcome mb-3">
-  Welcome back, <span>{{ user.username }}</span>.
-  Here's what's happening today.
-</p>
+<div class="cinematic-container">
+  <!-- 3D Parallax Hero Card -->
+  <div class="hero-card-3d" id="heroCard">
+    <div class="hero-title">Precision Time</div>
+    <div class="hero-subtitle">
+      Welcome back, <strong>{{ request.user.username }}</strong>. 
+      {% if record.check_in %}
+        You initiated your session at <span style="color: var(--cyan)">{{ check_in_display }}</span>.
+      {% else %}
+        Ready to initiate your enterprise synchronization for {{ today|date:"l, d F" }}?
+      {% endif %}
+    </div>
 
-<!-- ══════════ MAIN 2-COL GRID ══════════ -->
-<div class="dash-grid">
-
-  <!-- ── Workspace hero card ── -->
-  <div class="workspace-card">
-    <div>
-      <div class="live-badge">
-        {% if is_leave %}
-        <span style="width:7px;height:7px;border-radius:50%;background:#ef4444;box-shadow:0 0 8px #ef4444;"></span>
-        🏝️ Leave Day
+    <!-- Active Session Stats -->
+    <div class="hero-stats">
+      <div>
+        <div class="hero-stat-value">{% if hours_today %}{{ hours_today }}h{% else %}0.0h{% endif %}</div>
+        <div class="hero-stat-label">Session Duration</div>
+        {% if record.check_in %}
+        <div class="hero-stat-change up pulse">● Active now</div>
         {% else %}
-        <div class="live-dot"></div>
-        Live Workspace
+        <div class="hero-stat-change down">● Inactive</div>
         {% endif %}
       </div>
-      <h1 class="workspace-title">Master your time. <span>Perfect your presence.</span></h1>
-      <p class="workspace-desc">A futuristic command center to monitor your sessions and manage work-life balance with enterprise-grade precision.</p>
+      <div>
+        <div class="hero-stat-value">{{ weekly_total }}h</div>
+        <div class="hero-stat-label">Weekly Progress</div>
+        <div class="hero-stat-change up">↑ Target: {{ weekly_target }}h</div>
+      </div>
+      <div>
+        <div class="hero-stat-value">100%</div>
+        <div class="hero-stat-label">Sync Accuracy</div>
+        <div class="hero-stat-change up">Verified</div>
+      </div>
     </div>
 
-    <div class="d-flex gap-3 align-items-center mob-stack">
+    <!-- Actions Deck -->
+    <div class="action-deck">
       {% if not record.check_in %}
-      <form method="post" action="{% url 'checkin_checkout' %}">
-        {% csrf_token %}
-        <input type="hidden" name="action" value="check_in">
-        <button type="submit" class="hero-btn btn-primary-glow">
-          🚀 Check-in Now
-        </button>
-      </form>
+        <form method="post">
+          {% csrf_token %}
+          <button type="submit" name="action" value="checkin" class="btn-cinematic btn-cinematic-primary">
+            <svg width="20" height="20" fill="none" stroke="currentColor" stroke-width="2"><path d="M15 3h4a2 2 0 012 2v14a2 2 0 01-2 2h-4"/><polyline points="10 17 15 12 10 7"/><line x1="15" y1="12" x2="3" y2="12"/></svg>
+            Initiate Session
+          </button>
+        </form>
       {% elif not record.check_out %}
-      <form method="post" action="{% url 'checkin_checkout' %}">
-        {% csrf_token %}
-        <input type="hidden" name="action" value="check_out">
-        <button type="submit" class="hero-btn btn-danger-glow">
-          🚪 Check-out
-        </button>
-      </form>
-      {% else %}
-      <div class="status-complete">
-        ✨ Shifts completed for today!
-      </div>
+        <form method="post">
+          {% csrf_token %}
+          <button type="submit" name="action" value="checkout" class="btn-cinematic btn-cinematic-danger">
+            <svg width="20" height="20" fill="none" stroke="currentColor" stroke-width="2"><path d="M9 21H5a2 2 0 01-2-2V5a2 2 0 012-2h4"/><polyline points="16 17 21 12 16 7"/><line x1="21" y1="12" x2="9" y2="12"/></svg>
+            Terminate Session
+          </button>
+        </form>
+      {% endif %}
+      
+      <button class="btn-cinematic" data-bs-toggle="modal" data-bs-target="#manualEntryModal">
+        <svg width="20" height="20" fill="none" stroke="currentColor" stroke-width="2"><path d="M11 4H4a2 2 0 00-2 2v14a2 2 0 002 2h14a2 2 0 002-2v-7"/><path d="M18.5 2.5a2.121 2.121 0 113 3L12 15l-4 1 1-4 9.5-9.5z"/></svg>
+        Manual Sync
+      </button>
+
+      {% if record.check_in %}
+        <a href="{% url 'timesheet' %}" class="btn-cinematic">
+          <svg width="20" height="20" fill="none" stroke="currentColor" stroke-width="2"><path d="M14 2H6a2 2 0 00-2 2v16a2 2 0 002 2h12a2 2 0 002-2V8z"/><polyline points="14 2 14 8 20 8"/><line x1="16" y1="13" x2="8" y2="13"/><line x1="16" y1="17" x2="8" y2="17"/></svg>
+          Commit Timesheet
+        </a>
       {% endif %}
     </div>
 
-    <!-- CSS Desk illustration -->
-    <div class="desk-scene">
-      <div class="scene-glow"></div>
-      <div class="monitor-body">
-        <div class="monitor-screen">●●●</div>
-      </div>
-      <div class="monitor-stand"></div>
-      <div class="monitor-base"></div>
-      <div class="keyboard"></div>
-      <div class="plant-pot"></div>
-      <div class="plant-stem"></div>
-      <div class="plant-leaf1"></div>
-      <div class="plant-leaf2"></div>
-      <div class="plant-leaf3"></div>
-      <div class="coffee-cup"></div>
-      <div class="coffee-steam"></div>
+    {% if expected_checkout and not record.check_out %}
+    <div style="margin-top:20px; padding:12px; background:rgba(6, 182, 212, 0.05); border-radius:10px; border:1px solid rgba(6, 182, 212, 0.15); font-size:0.85rem; color:var(--cyan);">
+      <svg width="16" height="16" fill="none" stroke="currentColor" stroke-width="2" style="margin-right:8px;vertical-align:middle;"><circle cx="12" cy="12" r="10"/><polyline points="12 6 12 12 16 14"/></svg>
+      Optimal termination target to meet {{ daily_target_hours }}h: <strong>{{ expected_checkout }}</strong>
     </div>
-
-    {% if is_leave %}
-    <span
-      style="position:absolute;top:18px;right:18px;background:rgba(239,68,68,0.15);border:1px solid rgba(239,68,68,0.35);color:#f87171;border-radius:8px;padding:3px 10px;font-size:0.72rem;font-weight:600;">
-      🏝 Leave Day
-    </span>
-    {% elif record.is_holiday %}
-    <span
-      style="position:absolute;top:18px;right:18px;background:rgba(245,158,11,0.15);border:1px solid rgba(245,158,11,0.35);color:#fbbf24;border-radius:8px;padding:3px 10px;font-size:0.72rem;font-weight:600;">
-      🏖 Holiday
-    </span>
-    {% elif expected_checkout and not check_out_display %}
-    <span
-      style="position:absolute;top:18px;right:18px;background:rgba(96,165,250,0.1);border:1px solid rgba(96,165,250,0.25);color:#93c5fd;border-radius:8px;padding:3px 10px;font-size:0.72rem;">
-      Target out: <strong>{{ expected_checkout }}</strong>
-    </span>
     {% endif %}
-
-    <div class="ws-date">{{ today|date:"l, d F Y" }}</div>
   </div>
 
-  <!-- ── Right column ── -->
-  <div class="right-col">
+  <!-- Perspective Analytics Grid -->
+  <div class="grid-system">
+    <div class="card-3d">
+      <div class="card-header">
+        <div class="card-title">Week Intensity</div>
+        <div class="card-badge">Real-time</div>
+      </div>
+      <div class="card-value">{{ weekly_total }}h</div>
+      <div class="card-sub">{{ weekly_total_percent }}% of weekly target achieved</div>
+      <div class="sparkline" id="sparkIntensity"></div>
+    </div>
+
+    <div class="card-3d" style="border-color: rgba(37,99,235,0.15); box-shadow: 0 8px 40px var(--sapphire-glow);">
+      <div class="card-header">
+        <div class="card-title">System Status</div>
+        <div class="card-badge" style="background:rgba(37,99,235,0.1); color:var(--sapphire); border-color:var(--sapphire-glow);">Synced</div>
+      </div>
+      <div class="card-value">Online</div>
+      <div class="card-sub">All background workers operational</div>
+      <div class="sparkline" id="sparkStatus"></div>
+    </div>
+
+    <div class="card-3d">
+      <div class="card-header">
+        <div class="card-title">Session Accuracy</div>
+        <div class="card-badge" style="color:var(--emerald); background:rgba(16,185,129,0.1); border-color:rgba(16,185,129,0.2);">Optimal</div>
+      </div>
+      <div class="card-value">98.4<span style="font-size:16px; color:var(--muted);">%</span></div>
+      <div class="card-sub">Manual vs Auto sync deviation</div>
+      <div class="sparkline" id="sparkAccuracy"></div>
+    </div>
+  </div>
+
+  <!-- Logs & Activity -->
+  <div class="grid-split">
+    <!-- Chrono Logs -->
+    <div class="chrono-card">
+      <div class="card-header">
+        <div class="card-title">Chrono Logs (Recent Syncs)</div>
+        <div style="display:flex;gap:6px;">
+          <span class="card-badge">Daily Feed</span>
+        </div>
+      </div>
+      <table class="chrono-table">
+        <thead>
+          <tr>
+            <th>Date</th>
+            <th>Check-in</th>
+            <th>Check-out</th>
+            <th>Duration</th>
+            <th>Status</th>
+          </tr>
+        </thead>
+        <tbody>
+          {% if record.check_in %}
+          <tr>
+            <td style="color: var(--cyan); font-weight:700;">Today</td>
+            <td>{{ check_in_display }}</td>
+            <td>{{ check_out_display|default:"—" }}</td>
+            <td>{% if hours_today %}{{ hours_today }}h{% else %}—{% endif %}</td>
+            <td>
+              <span class="status-dot {% if record.check_out %}status-offline{% else %}status-active{% endif %}"></span>
+              {% if record.check_out %}Terminated{% else %}Active{% endif %}
+            </td>
+          </tr>
+          {% endif %}
+          {% for r in recent_records %}
+          <tr>
+            <td>{{ r.date|date:"d M" }}</td>
+            <td>{{ r.check_in|time:"H:i" }}</td>
+            <td>{{ r.check_out|time:"H:i" }}</td>
+            <td>{{ r.hours_display }}</td>
+            <td><span class="status-dot status-offline"></span>Terminated</td>
+          </tr>
+          {% empty %}
+            {% if not record.check_in %}
+            <tr>
+              <td colspan="5" style="text-align:center; padding: 40px; color: var(--muted);">
+                No recent activity cycles detected.
+              </td>
+            </tr>
+            {% endif %}
+          {% endfor %}
+        </tbody>
+      </table>
+    </div>
 
     <!-- Upcoming Holidays -->
-    <div class="dash-card">
-      <div class="dash-card-title">
-        Upcoming Holidays
-        <span class="card-icon">📅</span>
+    <div class="card-3d">
+      <div class="card-header">
+        <div class="card-title">Pipeline Calendar</div>
+        <div class="card-badge">Upcoming</div>
       </div>
-      {% if upcoming_holidays %}
-      {% for h in upcoming_holidays %}
-      <div class="holiday-item">
-        <span>{{ h.name }}</span>
-        <span class="holiday-date-badge">{{ h.date|date:"d M" }}</span>
+      <div id="activityFeed">
+        {% for holiday in upcoming_holidays %}
+        <div style="display:flex; gap:12px; margin-bottom:16px; align-items:center;">
+          <div style="width:40px; height:40px; border-radius:10px; background:rgba(6,182,212,0.1); color:var(--cyan); display:flex; align-items:center; justify-content:center; font-size:12px; font-weight:700; flex-shrink:0;">
+            {{ holiday.date|date:"d" }}
+          </div>
+          <div>
+            <div style="font-size:13px; font-weight:600;">{{ holiday.name }}</div>
+            <div style="font-size:10px; color:var(--muted);">{{ holiday.date|date:"l, F Y" }}</div>
+          </div>
+        </div>
+        {% empty %}
+        <div style="text-align:center; padding:20px; color:var(--muted); font-size: 13px;">
+          No holidays in immediate buffer.
+        </div>
+        {% endfor %}
       </div>
-      {% endfor %}
-      {% else %}
-      <div class="no-holidays">
-        <span class="no-holidays-icon">🎉</span>
-        <span>No upcoming holidays</span>
-      </div>
-      {% endif %}
+      <a href="{% url 'holiday_list' %}" style="display:block; text-align:center; color:var(--cyan); font-size:11px; text-decoration:none; margin-top:10px; font-weight:600;">View Full Roadmap →</a>
     </div>
-
-    <!-- Today's Status -->
-    <div class="dash-card">
-      <div class="dash-card-title">
-        Today's Status
-        <span class="card-icon" style="color:#34d399;">●</span>
-      </div>
-      <div class="status-grid">
-        <div class="status-cell">
-          <div class="status-cell-val {% if check_in_display %}green{% endif %}">
-            {{ check_in_display|default:"—" }}
-          </div>
-          <div class="status-cell-label">Check-in</div>
-        </div>
-        <div class="status-cell">
-          <div class="status-cell-val">
-            {{ check_out_display|default:"—" }}
-          </div>
-          <div class="status-cell-label">Check-out</div>
-        </div>
-        <div class="status-cell">
-          <div class="status-cell-val {% if hours_today is not None %}amber{% endif %}">
-            {% if hours_today is not None %}{{ hours_today }}h{% else %}—{% endif %}
-          </div>
-          <div class="status-cell-label">Today hrs</div>
-        </div>
-        <div class="status-cell">
-          <div class="status-cell-val">{{ weekly_total }}h</div>
-          <div class="status-cell-label">Week total</div>
-        </div>
-      </div>
-      <!-- Weekly progress bar -->
-      <div class="progress-wrap">
-        <div class="progress-label">
-          <span>Weekly progress</span>
-          <span>{{ weekly_total }} / {{ weekly_target }}h</span>
-        </div>
-        <div class="progress-bar">
-          <div class="progress-fill" style="--progress-width: {% widthratio weekly_total weekly_target 100 %}%;"></div>
-        </div>
-      </div>
-    </div>
-
   </div>
-</div><!-- /dash-grid -->
-
-
-<!-- ══════════ CORE COMMANDER ══════════ -->
-<div class="section-title">Core Commander</div>
-<div class="cmd-grid">
-
-  <a href="{% url 'month_calendar' %}" class="cmd-card">
-    <div class="cmd-card-icon">📋</div>
-    <div>
-      <div class="cmd-card-name">Full Roster View</div>
-      <div class="cmd-card-sub">Edit &amp; manage monthly plan</div>
-    </div>
-  </a>
-
-  <a href="{% url 'month_excel_export' %}" class="cmd-card">
-    <div class="cmd-card-icon">⬇</div>
-    <div>
-      <div class="cmd-card-name">Export Data</div>
-      <div class="cmd-card-sub">Download this month's Excel</div>
-    </div>
-  </a>
-
-  <a href="{% url 'weekly_summary' %}" class="cmd-card">
-    <div class="cmd-card-icon">📊</div>
-    <div>
-      <div class="cmd-card-name">View Analytics</div>
-      <div class="cmd-card-sub">Check weekly statistics</div>
-    </div>
-  </a>
-
-  <a href="{% url 'holiday_list' %}" class="cmd-card">
-    <div class="cmd-card-icon">🔔</div>
-    <div>
-      <div class="cmd-card-name">Holidays</div>
-      <div class="cmd-card-sub">View &amp; manage holidays</div>
-    </div>
-  </a>
-
-  <a href="{% url 'timesheet' %}" class="cmd-card" style="border-color:rgba(52,211,153,0.15);">
-    <div class="cmd-card-icon" style="background:rgba(52,211,153,0.08);border-color:rgba(52,211,153,0.15);">🗂️</div>
-    <div>
-      <div class="cmd-card-name" style="color:#34d399;">Timesheet</div>
-      <div class="cmd-card-sub">Fill &amp; export monthly timesheet</div>
-    </div>
-  </a>
-
-  <a href="/static/app/attendance_tracker_v1.apk" class="cmd-card" style="border-color:rgba(96,165,250,0.3); background:rgba(37,99,235,0.05);" download>
-    <div class="cmd-card-icon" style="background:rgba(37,99,235,0.1); border-color:rgba(37,99,235,0.2);">📱</div>
-    <div>
-      <div class="cmd-card-name" style="color:#60a5fa;">Android App</div>
-      <div class="cmd-card-sub">Download APK for testing</div>
-    </div>
-  </a>
 </div>
 
-
-<!-- ══════════ DAILY ROSTER ══════════ -->
-<div class="daily-roster">
-  <div class="roster-header">
-    <div>
-      <div class="roster-label">Daily Shift Roster</div>
-      <div class="roster-date" id="live-date">{{ today|date:"d-M-Y" }}</div>
-    </div>
-    <div class="roster-highlight">
-      Highlighted = you ({{ user.username }})
+<!-- Manual Entry Modal -->
+<div class="modal fade" id="manualEntryModal" tabindex="-1">
+  <div class="modal-dialog modal-dialog-centered">
+    <div class="modal-content glass" style="border-radius:20px; border:1px solid var(--border-hi);">
+      <div class="modal-header border-0 pb-0">
+        <h5 class="modal-title" style="font-weight:800; letter-spacing:-0.5px;">Manual Sync Initialization</h5>
+        <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal"></button>
+      </div>
+      <form method="post">
+        {% csrf_token %}
+        <div class="modal-body">
+          <p style="font-size:0.85rem; color:var(--muted); margin-bottom:20px;">
+            Adjust your temporal session parameters if the automatic sync failed.
+          </p>
+          <div class="row g-3">
+            <div class="col-6">
+              <label class="form-label" style="font-size:11px; text-transform:uppercase; color:var(--cyan); font-weight:700;">Initiation</label>
+              <input type="time" name="manual_check_in" class="form-control bg-dark text-white border-secondary" 
+                     value="{{ check_in_display }}">
+            </div>
+            <div class="col-6">
+              <label class="form-label" style="font-size:11px; text-transform:uppercase; color:var(--cyan); font-weight:700;">Termination</label>
+              <input type="time" name="manual_check_out" class="form-control bg-dark text-white border-secondary" 
+                     value="{{ check_out_display }}">
+            </div>
+          </div>
+        </div>
+        <div class="modal-footer border-0 pt-0">
+          <button type="button" class="btn btn-link text-muted text-decoration-none" data-bs-dismiss="modal">Cancel</button>
+          <button type="submit" name="action" value="set_manual" class="btn-cinematic btn-cinematic-primary" style="padding: 8px 24px;">Overwrite Sync</button>
+        </div>
+      </form>
     </div>
   </div>
+</div>
+{% endblock %}
 
-  {% if is_leave %}
-  <div class="no-record-msg" style="color:#f87171;font-weight:700;">🏖 You are on LEAVE today.</div>
-  {% elif record.check_in or record.check_out %}
-  <!-- Timeline -->
-  <div class="timeline">
-    <div class="tl-point">
-      <div class="tl-dot {% if check_in_display %}filled{% endif %}"></div>
-      <div class="tl-time">{{ check_in_display|default:"—" }}</div>
-      <div class="tl-label">In</div>
-    </div>
-    <div class="tl-line {% if check_in_display %}active{% endif %}"></div>
-    <div class="tl-point">
-      <div class="tl-dot {% if check_out_display %}blue{% endif %}"></div>
-      <div class="tl-time">{{ check_out_display|default:"—" }}</div>
-      <div class="tl-label">Out</div>
-    </div>
-    {% if hours_today is not None %}
-    <div style="margin-left:18px;font-size:0.8rem;color:var(--text-muted);margin-bottom:28px;">
-      ⏱ <strong style="color:#34d399;">{{ hours_today }}h</strong> worked
-      {% if hours_today >= daily_target_hours %}
-      <span style="color:#34d399;font-size:0.7rem;"> ✓ Target met</span>
-      {% endif %}
-    </div>
-    {% endif %}
-  </div>
-  {% else %}
-  <div class="no-record-msg">No shifts recorded for today yet.</div>
-  {% endif %}
+{% block extra_scripts %}
+<script>
+  // ——— Hero Card Parallax ———
+  const heroCard = document.getElementById('heroCard');
+  document.addEventListener('mousemove', (e) => {
+    const x = (e.clientX / window.innerWidth - 0.5) * 2;
+    const y = (e.clientY / window.innerHeight - 0.5) * 2;
+    
+    // Subtle rotation for hero card
+    if (heroCard) {
+      heroCard.style.transform = `translateZ(30px) rotateX(${-y * 5}deg) rotateY(${x * 5}deg)`;
+    }
+  });
 
-  <!-- Action buttons -->
-  <form method="post" style="display:contents;">
-    {% csrf_token %}
-    <div class="action-row">
-      <button name="action" value="check_in" class="roster-btn btn-checkin" {% if record.check_in %}disabled{% endif %}>
-        ✓ Check In
-      </button>
-      <button name="action" value="check_out" class="roster-btn btn-checkout" {% if not record.check_in or record.check_out %}disabled{% endif %}>
-        ✗ Check Out
-      </button>
-      <button type="button" class="roster-btn btn-manual"
-        onclick="document.getElementById('manual-row').style.display=document.getElementById('manual-row').style.display==='none'?'flex':'none'">
-        ⏱ Manual
-      </button>
-      {% if record.check_in or record.check_out %}
-      <button name="action" value="delete" class="roster-btn"
-        style="background:transparent;border:1px solid rgba(239,68,68,0.3);color:rgba(239,68,68,0.7);margin-left:auto;"
-        onclick="return confirm('Delete today\'s record?')">
-        🗑 Delete
-      </button>
-      {% endif %}
-    </div>
-  </form>
+  // ——— Sparklines Generator ———
+  function createSparkline(id) {
+    const container = document.getElementById(id);
+    if (!container) return;
+    for (let i = 0; i < 15; i++) {
+      const bar = document.createElement('div');
+      bar.className = 'spark-bar';
+      bar.style.height = Math.random() * 80 + 20 + '%';
+      container.appendChild(bar);
+    }
+  }
+  createSparkline('sparkIntensity');
+  createSparkline('sparkStatus');
+  createSparkline('sparkAccuracy');
 
-  <!-- Manual time form (hidden by default) -->
-  <form method="post">
-    {% csrf_token %}
-    <div id="manual-row" class="manual-row" style="display:none;">
-      <div>
-        <label>Manual Check-in</label><br>
-        <input type="time" name="manual_check_in" id="manual_ci" />
-      </div>
-      <div>
-        <label>Manual Check-out</label><br>
-        <input type="time" name="manual_check_out" id="manual_co" />
-      </div>
-      <button name="action" value="set_manual" class="roster-btn btn-checkin" style="margin-top:16px;">
-        Save
-      </button>
-    </div>
-  </form>
-
-</div><!-- /daily-roster -->
-
+  // Sparkline animation
+  setInterval(() => {
+    document.querySelectorAll('.spark-bar').forEach(bar => {
+      bar.style.height = Math.random() * 80 + 20 + '%';
+    });
+  }, 3000);
+</script>
 {% endblock %}

@@ -1,0 +1,543 @@
+{% extends "base.html" %}
+{% load static %}
+
+{% block title %}Timesheet Redesign | Attendance{% endblock %}
+{% block nav_timesheet_active %}active{% endblock %}
+{% block header_title %}Modern Timesheet{% endblock %}
+
+{% block extra_head %}
+<style>
+  :root {
+    --col-w: 64px;
+    --row-h: 48px;
+    --header-col: 240px;
+    --accent: #3B82F6;
+    --accent-light: rgba(59, 130, 246, 0.12);
+    --weekend-bg: rgba(255, 255, 255, 0.03);
+    --border-color: rgba(255, 255, 255, 0.08);
+    --leave-color: #EF4444;
+    --sat-color: #F59E0B;
+    --sun-color: #EF4444;
+    --holiday-color: #60A5FA;
+  }
+
+  .ts-container {
+    padding: 10px 0;
+    max-width: 100%;
+    margin: 0 auto;
+  }
+
+  /* Summary Section */
+  .ts-summary {
+    display: flex;
+    gap: 16px;
+    margin-bottom: 24px;
+    flex-wrap: wrap;
+  }
+  .ts-card {
+    flex: 1;
+    min-width: 140px;
+    background: rgba(17, 24, 39, 0.4);
+    backdrop-filter: var(--glass-blur);
+    -webkit-backdrop-filter: var(--glass-blur);
+    border: 1px solid var(--border-color);
+    border-radius: 20px;
+    padding: 24px;
+    display: flex;
+    flex-direction: column;
+    gap: 6px;
+    transition: all 0.3s ease;
+    box-shadow: 0 10px 20px rgba(0, 0, 0, 0.2);
+  }
+  .ts-card:hover {
+    transform: translateY(-4px);
+    border-color: var(--accent);
+    background: rgba(59, 130, 246, 0.05);
+  }
+  .ts-card-label {
+    font-size: 0.7rem;
+    text-transform: uppercase;
+    letter-spacing: 0.1em;
+    color: #94A3B8;
+    font-weight: 700;
+  }
+  .ts-card-val {
+    font-size: 1.75rem;
+    font-weight: 800;
+    color: #F8FAFC;
+    font-family: var(--display-font);
+  }
+  .ts-card-val.accent { color: var(--accent); }
+
+  /* Controls Section */
+  .ts-controls {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: 20px;
+    padding: 0 4px;
+  }
+  .ts-nav {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+  }
+  .ts-nav-label {
+    font-size: 1.15rem;
+    font-weight: 700;
+    font-family: var(--display-font);
+    min-width: 160px;
+    text-align: center;
+  }
+  .nav-btn {
+    width: 36px;
+    height: 36px;
+    border-radius: 10px;
+    background: rgba(255, 255, 255, 0.05);
+    border: 1px solid var(--border-color);
+    color: white;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    cursor: pointer;
+    transition: all 0.2s;
+    text-decoration: none;
+  }
+  .nav-btn:hover {
+    background: var(--accent);
+    border-color: var(--accent);
+  }
+
+  .week-pills {
+    display: flex;
+    gap: 6px;
+    background: rgba(0, 0, 0, 0.2);
+    padding: 4px;
+    border-radius: 12px;
+    border: 1px solid var(--border-color);
+  }
+  .week-pill {
+    padding: 6px 14px;
+    border-radius: 8px;
+    font-size: 0.75rem;
+    font-weight: 700;
+    cursor: pointer;
+    border: none;
+    background: transparent;
+    color: #94A3B8;
+    transition: all 0.2s;
+  }
+  .week-pill.active {
+    background: var(--accent);
+    color: white;
+    box-shadow: 0 4px 12px rgba(29, 158, 117, 0.3);
+  }
+
+  /* Table Grid System */
+  .ts-table-box {
+    background: rgba(15, 23, 42, 0.4);
+    border: 1px solid var(--border-color);
+    border-radius: 24px;
+    overflow: hidden;
+    position: relative;
+    backdrop-filter: blur(10px);
+    box-shadow: 0 20px 50px rgba(0,0,0,0.4);
+  }
+  .ts-scroll {
+    overflow-x: auto;
+    width: 100%;
+  }
+  .ts-table {
+    border-collapse: collapse;
+    width: max-content;
+    min-width: 100%;
+  }
+  
+  .ts-table th, .ts-table td {
+    border-right: 1px solid var(--border-color);
+    border-bottom: 1px solid var(--border-color);
+  }
+
+  /* Sticky Columns */
+  .f-col { position: sticky; left: 0; z-index: 10; background: #0F172A; }
+  .f-col-2 { position: sticky; left: 40px; z-index: 10; background: #0F172A; }
+  .f-col-3 { position: sticky; left: 200px; z-index: 10; background: #0F172A; }
+  .f-col-4 { position: sticky; left: 240px; z-index: 10; background: #0F172A; }
+
+  .th-day {
+    padding: 12px 6px;
+    text-align: center;
+    background: rgba(255, 255, 255, 0.02);
+  }
+  .d-num { font-size: 1.1rem; font-weight: 800; display: block; color: white; }
+  .d-name { font-size: 0.6rem; text-transform: uppercase; color: #64748B; letter-spacing: 0.05em; font-weight: 700; }
+  
+  .badge-day {
+    font-size: 0.55rem;
+    padding: 1px 4px;
+    border-radius: 4px;
+    font-weight: 800;
+    margin-top: 4px;
+    display: inline-block;
+  }
+  .bg-sat { background: rgba(245, 158, 11, 0.15); color: #F59E0B; }
+  .bg-sun { background: rgba(239, 68, 68, 0.15); color: #EF4444; }
+  .bg-hol { background: rgba(16, 185, 129, 0.15); color: #10B981; }
+
+  /* Rows */
+  .info-tr td { height: 44px; text-align: center; font-size: 0.85rem; }
+  .label-col { text-align: left !important; padding-left: 16px; font-weight: 700; color: #94A3B8; text-transform: uppercase; font-size: 0.7rem; letter-spacing: 0.05em; }
+  
+  .val-in { color: var(--accent); font-weight: 700; }
+  .val-out { color: #3B82F6; font-weight: 700; }
+  .val-esa { color: #10B981; font-weight: 800; font-size: 0.95rem; }
+  
+  .esa-tr { background: rgba(255, 255, 255, 0.02); border-bottom: 2px solid var(--border-color); }
+  
+  .act-tr:hover td { background: rgba(255, 255, 255, 0.03) !important; }
+  .act-sr { width: 40px; text-align: center; color: #475569; font-size: 0.75rem; }
+  .act-name { width: 160px; padding: 0 12px; }
+  .act-sub { width: 40px; text-align: center; }
+  .act-id { width: 60px; text-align: center; }
+
+  .cat-pill {
+    padding: 3px 8px;
+    border-radius: 100px;
+    font-size: 0.65rem;
+    font-weight: 700;
+  }
+  .cat-sup { background: rgba(16, 185, 129, 0.12); color: #10B981; }
+  .cat-dev { background: rgba(59, 130, 246, 0.12); color: #3B82F6; }
+  .cat-meet { background: rgba(236, 72, 153, 0.12); color: #EC4899; }
+  .cat-test { background: rgba(245, 158, 11, 0.12); color: #F59E0B; }
+
+  .input-hrs {
+    width: 100%;
+    height: 100%;
+    background: transparent;
+    border: none;
+    color: var(--accent);
+    text-align: center;
+    font-weight: 700;
+    outline: none;
+  }
+  .input-hrs:focus { background: rgba(29, 158, 117, 0.05); }
+  .input-hrs::placeholder { color: rgba(255,255,255,0.05); }
+
+  .total-col { font-weight: 800; color: white; background: rgba(255, 255, 255, 0.01); width: 80px; text-align: center; }
+  
+  .add-tr { cursor: pointer; transition: background 0.2s; }
+  .add-tr:hover { background: rgba(29, 158, 117, 0.05); }
+  .add-tr td { padding: 14px; text-align: center; color: var(--accent); font-weight: 700; font-size: 0.8rem; }
+
+  .ts-footer {
+    display: flex;
+    justify-content: flex-end;
+    gap: 12px;
+    margin-top: 24px;
+    padding-bottom: 40px;
+  }
+
+  .weekend-col { background: rgba(0, 0, 0, 0.15); }
+  .today-col { background: rgba(29, 158, 117, 0.05) !important; border: 1px solid var(--accent) !important; }
+  
+  .dash-val { color: rgba(255,255,255,0.1); font-size: 0.7rem; }
+  
+  /* Select/Input replacements for activity edits */
+  .act-input {
+    background: rgba(0, 0, 0, 0.2);
+    border: 1px solid var(--border-color);
+    border-radius: 6px;
+    color: white;
+    font-size: 0.75rem;
+    padding: 4px 8px;
+    width: 100%;
+  }
+</style>
+{% endblock %}
+
+{% block content %}
+<div class="ts-container">
+  
+  <!-- Modern Summary Dashboard -->
+  <div class="ts-summary" id="summaryBox">
+    <!-- Will be populated by JS -->
+  </div>
+
+  <div class="ts-controls">
+    <div>
+      <h2 style="font-size: 1.5rem; font-weight: 800; font-family: var(--display-font); color: white;">Timesheet Engine</h2>
+      <p style="font-size: 0.75rem; color: #64748B; margin-top: -4px;">Manage your project allocations and billing cycles.</p>
+    </div>
+    
+    <div style="display: flex; gap: 16px; align-items: center;">
+      <div class="week-pills" id="weekPills"></div>
+      
+      <div class="ts-nav">
+        <a href="?year={{ prev_year }}&month={{ prev_month }}" class="nav-btn">←</a>
+        <div class="ts-nav-label">{{ month_name }} {{ year }}</div>
+        <a href="?year={{ next_year }}&month={{ next_month }}" class="nav-btn">→</a>
+      </div>
+      
+      <a href="{% url 'timesheet_export' %}?year={{ year }}&month={{ month }}" class="btn btn-outline-light" style="font-size: 0.75rem; padding: 8px 16px; border-radius: 10px;">
+        Export XLSX
+      </a>
+    </div>
+  </div>
+
+  <form id="tsForm" method="POST">
+    {% csrf_token %}
+    <input type="hidden" name="action" value="save_timesheet">
+    <input type="hidden" id="activities_data" name="activities_data">
+
+    <div class="ts-table-box">
+      <div class="ts-scroll">
+        <table class="ts-table" id="mainTable">
+          <!-- Populated by JS -->
+        </table>
+      </div>
+    </div>
+
+    <div class="ts-footer">
+      <button type="button" class="btn btn-outline-secondary" onclick="window.location.reload()">Discard Changes</button>
+      <button type="button" class="btn btn-primary" style="padding: 10px 32px; border-radius: 12px; font-weight: 800; box-shadow: 0 8px 24px rgba(37, 99, 235, 0.4);" onclick="submitTimesheet()">
+        Commit Timesheet
+      </button>
+    </div>
+  </form>
+</div>
+
+<!-- DATA CONTEXT -->
+<script id="data-context" type="application/json">
+{
+  "year": {{ year }},
+  "month": {{ month }},
+  "time_map": {{ sample_data_json|safe }},
+  "activities": {{ activities_json|safe }},
+  "holidays": {{ holidays_json|safe }}
+}
+</script>
+
+<script>
+const dataContext = JSON.parse(document.getElementById('data-context').textContent);
+const DAYS_WKD = ['SUM','MON','TUE','WED','THU','FRI','SAT'];
+const MONTHS = ['January','February','March','April','May','June','July','August','September','October','November','December'];
+
+let currentYear = dataContext.year;
+let currentMonth = dataContext.month - 1; // 0-indexed
+let attMap = dataContext.time_map;
+let activities = dataContext.activities;
+let holidays = dataContext.holidays;
+
+let activeWeek = 0;
+let visibleDays = [];
+
+function getDaysInMonth(y, m) { return new Date(y, m + 1, 0).getDate(); }
+function getStartDay(y, m) { return new Date(y, m, 1).getDay(); }
+function isWeekend(d, y, m) { const day = new Date(y, m, d).getDay(); return day === 0 || day === 6; }
+function isSunday(d, y, m) { return new Date(y, m, d).getDay() === 0; }
+function isSaturday(d, y, m) { return new Date(y, m, d).getDay() === 6; }
+function isHoliday(d) { return !!holidays[String(d)]; }
+
+function totalHours(dd) { 
+  if (!dd.in || !dd.out || dd.in === 'LEAVE' || dd.in === 'HOLIDAY') return 0; 
+  const [ih,im]=dd.in.split(':').map(Number); 
+  const [oh,om]=dd.out.split(':').map(Number); 
+  return (oh*60+om-ih*60-im)/60; 
+}
+
+function getWeeks(y, m) {
+  const n = getDaysInMonth(y, m);
+  const weeks = [];
+  let w = [];
+  for (let d = 1; d <= n; d++) {
+    w.push(d);
+    if (isSunday(d, y, m) || d === n) { weeks.push([...w]); w = []; }
+  }
+  return weeks;
+}
+
+function setVisibleDays() {
+  const weeks = getWeeks(currentYear, currentMonth);
+  const pills = document.getElementById('weekPills');
+  pills.innerHTML = '';
+  weeks.forEach((wk, i) => {
+    const p = document.createElement('button');
+    p.type = 'button';
+    p.className = 'week-pill' + (i === activeWeek ? ' active' : '');
+    p.textContent = 'Week ' + (i + 1);
+    p.onclick = () => { activeWeek = i; render(); };
+    pills.appendChild(p);
+  });
+  visibleDays = weeks[activeWeek] || weeks[0];
+}
+
+function render() {
+  setVisibleDays();
+  renderSummary();
+  renderTable();
+}
+
+function renderSummary() {
+  const n = getDaysInMonth(currentYear, currentMonth);
+  let workDays = 0, present = 0, leaves = 0, totalESA = 0;
+  for (let d = 1; d <= n; d++) {
+    const key = String(d);
+    if (!isWeekend(d, currentYear, currentMonth) && !isHoliday(d)) workDays++;
+    const dd = attMap[key];
+    if (dd) {
+      if (dd.type === 'LEAVE') leaves++;
+      else if (dd.in && dd.in !== 'HOLIDAY') { present++; totalESA += totalHours(dd); }
+    }
+  }
+  const actTotal = activities.reduce((s, a) => s + Object.values(a.hours).reduce((x, v) => x + (parseFloat(v) || 0), 0), 0);
+  
+  document.getElementById('summaryBox').innerHTML = `
+    <div class="ts-card"><div class="ts-card-label">Cycle Work Days</div><div class="ts-card-val">${workDays}</div></div>
+    <div class="ts-card"><div class="ts-card-label">Total Present</div><div class="ts-card-val accent">${present}</div></div>
+    <div class="ts-card"><div class="ts-card-label">Leaves / Offs</div><div class="ts-card-val" style="color:#EF4444">${leaves}</div></div>
+    <div class="ts-card"><div class="ts-card-label">Billable (ESA)</div><div class="ts-card-val" style="color:#3B82F6">${totalESA.toFixed(1)}h</div></div>
+    <div class="ts-card"><div class="ts-card-label">Logged Time</div><div class="ts-card-val accent">${actTotal.toFixed(1)}h</div></div>
+  `;
+}
+
+function renderTable() {
+  const days = visibleDays;
+  const tbl = document.getElementById('mainTable');
+  let html = '';
+
+  const colWidth = 64;
+  html += '<colgroup>';
+  html += '<col style="width:40px"><col style="width:160px"><col style="width:40px"><col style="width:60px">';
+  days.forEach(() => html += `<col style="width:${colWidth}px">`);
+  html += '<col style="width:80px"></colgroup>';
+
+  html += '<thead><tr style="height: 60px;">';
+  html += `<th class="f-col label-col" style="vertical-align:bottom; border-bottom: none;">#</th>`;
+  html += `<th class="f-col-2 label-col" style="vertical-align:bottom; border-bottom: none;">Allocation Detail</th>`;
+  html += `<th class="f-col-3 label-col" style="text-align:center !important; vertical-align:bottom; border-bottom: none;">Sub</th>`;
+  html += `<th class="f-col-4 label-col" style="text-align:center !important; vertical-align:bottom; border-bottom: none;">ID</th>`;
+
+  const today = new Date(); 
+  let todayD = (today.getFullYear() === currentYear && today.getMonth() === currentMonth) ? today.getDate() : 0;
+
+  days.forEach(d => {
+    const isSun = isSunday(d, currentYear, currentMonth);
+    const isSat = isSaturday(d, currentYear, currentMonth);
+    const isHol = isHoliday(d);
+    const isToday = d === todayD;
+    const wkLabel = DAYS_WKD[new Date(currentYear, currentMonth, d).getDay()];
+    
+    let badge = '';
+    if (isHol) badge = `<span class="badge-day bg-hol">HOL</span>`;
+    else if (isSat) badge = `<span class="badge-day bg-sat">SAT</span>`;
+    else if (isSun) badge = `<span class="badge-day bg-sun">SUN</span>`;
+    
+    const cls = isToday ? 'today-col' : ((isSat || isSun || isHol) ? 'weekend-col' : '');
+    html += `<th class="th-day ${cls}"><span class="d-num">${d}</span><span class="d-name">${wkLabel}</span>${badge}</th>`;
+  });
+  html += `<th class="label-col" style="text-align:center !important; vertical-align:middle;">Total</th>`;
+  html += '</tr></thead>';
+
+  html += '<tbody>';
+
+  // Render Time Rows (In / Out)
+  const renderTimeRow = (label, key, valCls) => {
+    let r = `<tr class="info-tr"><td class="f-col label-col">${label}</td><td class="f-col-2" colspan="3"></td>`;
+    days.forEach(d => {
+      const dk = String(d); const dd = attMap[dk]; 
+      const bg = (isWeekend(d, currentYear, currentMonth) || isHoliday(d)) ? 'weekend-col' : '';
+      let val = '<span class="dash-val">--</span>';
+      if (dd) {
+        if (dd.type === 'LEAVE') val = `<span style="color:var(--leave-color); font-size:10px; font-weight:800">OFF</span>`;
+        else if (dd[key]) val = `<span class="${valCls}">${dd[key]}</span>`;
+      }
+      r += `<td class="${bg}">${val}</td>`;
+    });
+    r += `<td class="total-col"></td></tr>`;
+    return r;
+  };
+
+  html += renderTimeRow('In Time', 'in', 'val-in');
+  html += renderTimeRow('Out Time', 'out', 'val-out');
+
+  // ESA Row
+  html += `<tr class="info-tr esa-tr"><td class="f-col label-col" style="color:var(--accent)">Billable ESA</td><td class="f-col-2" colspan="3"></td>`;
+  let esaTotal = 0;
+  days.forEach(d => {
+    const dk = String(d); const dd = attMap[dk];
+    const bg = (isWeekend(d, currentYear, currentMonth) || isHoliday(d)) ? 'weekend-col' : '';
+    let val = '<span class="dash-val">0.0</span>';
+    if (dd && dd.in && dd.in !== 'LEAVE' && dd.in !== 'HOLIDAY') {
+      const h = totalHours(dd); esaTotal += h;
+      val = `<span class="val-esa">${h.toFixed(1)}</span>`;
+    }
+    html += `<td class="${bg}">${val}</td>`;
+  });
+  html += `<td class="total-col val-esa">${esaTotal.toFixed(1)}</td></tr>`;
+
+  // Spacer Row
+  html += `<tr><td colspan="${days.length + 5}" style="height:12px; background:rgba(255,255,255,0.02)"></td></tr>`;
+
+  // Activity Rows
+  activities.forEach((act, actIdx) => {
+    const rowTotal = Object.values(act.hours).reduce((s, v) => s + (parseFloat(v) || 0), 0);
+    html += `<tr class="act-tr" data-act-idx="${actIdx}">`;
+    html += `<td class="f-col act-sr">${act.sr}</td>`;
+    html += `<td class="f-col-2 act-name"><span class="cat-pill ${act.catClass}">${act.category}</span><div style="font-size:0.7rem; color:#94A3B8; margin-top:2px;">${act.sub}</div></td>`;
+    html += `<td class="f-col-3 act-sub"><span style="color:#64748B; font-size:0.7rem;">${actIdx+1}</span></td>`;
+    html += `<td class="f-col-4 act-id"><span style="color:#64748B; font-size:0.6rem; font-family:var(--font-mono)">${act.id}</span></td>`;
+    
+    days.forEach(d => {
+      const dk = String(d);
+      const val = act.hours[dk] || '';
+      const bg = (isWeekend(d, currentYear, currentMonth) || isHoliday(d)) ? 'weekend-col' : '';
+      html += `<td class="${bg}"><input type="number" step="0.5" class="input-hrs" placeholder="-" value="${val}" onchange="updateHour(${actIdx}, ${d}, this.value)"></td>`;
+    });
+    
+    html += `<td class="total-col accent">${rowTotal.toFixed(1)}</td></tr>`;
+  });
+
+  // Totals Row
+  html += `<tr class="info-tr" style="background:rgba(255,255,255,0.02);"><td class="f-col label-col">Day Total</td><td class="f-col-2" colspan="3"></td>`;
+  days.forEach(d => {
+    const dk = String(d);
+    const daySum = activities.reduce((s, a) => s + (parseFloat(a.hours[dk]) || 0), 0);
+    const bg = (isWeekend(d, currentYear, currentMonth) || isHoliday(d)) ? 'weekend-col' : '';
+    html += `<td class="${bg}" style="font-weight:800; color:${daySum > 0 ? 'white' : 'transparent'}">${daySum > 0 ? daySum.toFixed(1) : '0'}</td>`;
+  });
+  const grandTotal = activities.reduce((s, a) => s + Object.values(a.hours).reduce((x, v) => x + (parseFloat(v) || 0), 0), 0);
+  html += `<td class="total-col" style="color:var(--accent)">${grandTotal.toFixed(1)}</td></tr>`;
+
+  // Add Row
+  html += `<tr class="add-tr" onclick="addNewActivity()"><td colspan="${days.length + 5}">+ Add New Allocation Row</td></tr>`;
+
+  html += '</tbody>';
+  tbl.innerHTML = html;
+}
+
+function updateHour(actIdx, day, val) {
+  activities[actIdx].hours[String(day)] = val;
+  render();
+}
+
+function addNewActivity() {
+  activities.push({
+    sr: activities.length + 1,
+    category: "Development",
+    catClass: "cat-dev",
+    sub: "New Task",
+    id: "TSK-" + Math.floor(Math.random()*1000),
+    hours: {}
+  });
+  render();
+}
+
+function submitTimesheet() {
+  document.getElementById('activities_data').value = JSON.stringify(activities);
+  document.getElementById('tsForm').submit();
+}
+
+render();
+</script>
+{% endblock %}

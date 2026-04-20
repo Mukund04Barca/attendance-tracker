@@ -1,27 +1,30 @@
 {% extends "base.html" %}
 
-{% block title %}Terms of Service | [WEBSITE NAME]{% endblock %}
+{% block title %}Terms of Service | Attendance Tracker{% endblock %}
 {% block header_title %}Terms of Service{% endblock %}
 
 {% block content %}
-<div class="card" style="max-width: 800px; margin: 0 auto;">
-  <div class="card-body" style="color: var(--text); line-height: 1.6;">
-    <h2 style="font-weight: 800; margin-bottom: 20px;">Terms of Service</h2>
-    <p>Last updated: {% now "Y-m-d" %}</p>
+<div style="max-width: 900px; margin: 0 auto; padding-top: 20px;">
+  <div style="background: var(--surface); border: 1px solid var(--surface-border); border-radius: var(--border-radius-xl); padding: 50px; box-shadow: 0 30px 60px rgba(0,0,0,0.3);">
+    <h1 style="font-family: var(--display-font); font-weight: 800; font-size: 2.5rem; margin-bottom: 8px; color: var(--text);">Terms of Service</h1>
+    <p style="color: var(--muted); font-size: 0.9rem; margin-bottom: 40px; border-bottom: 1px solid var(--surface-border); padding-bottom: 20px;">Effective Date: {% now "F d, Y" %}</p>
 
-    <p>Welcome to <strong>[APP NAME]</strong>! These terms and conditions outline the rules and regulations for the use of <strong>[WEBSITE NAME]</strong>'s Website, located at <strong>[WEBSITE URL]</strong>.</p>
+    <div style="color: var(--text); line-height: 1.8; font-size: 1.05rem;">
+      <p>By engaging with the Attendance Tracking platform, you acknowledge and accept the following governing principles.</p>
 
-    <h4 style="margin-top: 30px;">1. Terms</h4>
-    <p>By accessing this Website, accessible from <strong>[WEBSITE URL]</strong>, you are agreeing to be bound by these Website Terms and Conditions of Use and agree that you are responsible for the agreement with any applicable local laws.</p>
+      <h3 style="margin-top: 40px; font-weight: 800; color: #1D9E75;">1. Platform Utilization</h3>
+      <p>The platform is designed for professional attendance logging. Users are responsible for maintaining the accuracy of their entries, whether recorded live or adjusted via manual protocols.</p>
 
-    <h4 style="margin-top: 30px;">2. Use License</h4>
-    <p>Permission is granted to temporarily download one copy of the materials on <strong>[WEBSITE NAME]</strong>'s Website for personal, non-commercial transitory viewing only.</p>
+      <h3 style="margin-top: 40px; font-weight: 800; color: #1D9E75;">2. Intellectual Property</h3>
+      <p>All design systems, proprietary code, and analytical frameworks utilized in this workspace are protected assets. Unauthorized duplication of the "Emerald & Slate" design interface is strictly prohibited.</p>
 
-    <h4 style="margin-top: 30px;">3. Disclaimer</h4>
-    <p>All the materials on <strong>[WEBSITE NAME]</strong>'s Website are provided "as is". <strong>[WEBSITE NAME]</strong> makes no warranties, may it be expressed or implied, therefore negates all other warranties.</p>
+      <h3 style="margin-top: 40px; font-weight: 800; color: #1D9E75;">3. Liability Framework</h3>
+      <p>While we strive for 100% uptime in our attendance intelligence engine, we are not liable for any discrepancies in automated timesheet calculations. Verification of exports is recommended for payroll submission.</p>
 
-    <h4 style="margin-top: 30px;">4. Contact</h4>
-    <p>If you have any questions about these Terms, please contact us at <strong>[SUPPORT EMAIL]</strong>.</p>
+      <div style="margin-top: 60px; padding: 30px; background: rgba(255,255,255,0.02); border-radius: 12px; border: 1px solid var(--surface-border);">
+        <p style="margin: 0; font-size: 0.9rem; color: var(--muted);">Questions regarding these terms? Contact the legal department at <strong style="color: var(--text);">compliance@attendance.tracker</strong></p>
+      </div>
+    </div>
   </div>
 </div>
 {% endblock %}

@@ -4,812 +4,180 @@
 <head>
   <meta charset="utf-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1" />
-  <title>Login | Attendance</title>
-  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&display=swap"
-    rel="stylesheet" />
-  <link rel="manifest" href="/static/manifest.json" />
-  <meta name="theme-color" content="#6c63ff" />
-  <meta name="mobile-web-app-capable" content="yes" />
-  <meta name="apple-mobile-web-app-capable" content="yes" />
+  <title>Login | Attendance Tracker</title>
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&family=Space+Grotesk:wght@700&display=swap" rel="stylesheet" />
   <style>
-    *,
-    *::before,
-    *::after {
-      margin: 0;
-      padding: 0;
-      box-sizing: border-box;
-      -webkit-tap-highlight-color: transparent;
-    }
-
     :root {
-      --brand: #6c63ff;
-      --brand-2: #48cfad;
-      --brand-3: #f7971e;
-      --dark: #0a0a1a;
-      --card-bg: #0f0f23;
-      --input-bg: #16162e;
-      --border: rgba(255, 255, 255, 0.08);
-      --text: #f1f1f6;
-      --muted: rgba(255, 255, 255, 0.38);
-      --font: 'Inter', sans-serif;
+      --bg: #0A0F1C;
+      --surface: #111827;
+      --accent: #1D9E75;
+      --accent-glow: rgba(29, 158, 117, 0.3);
+      --text: #F9FAFB;
+      --muted: #94A3B8;
+      --border: rgba(226, 232, 240, 0.08);
     }
 
-    html,
-    body {
-      min-height: 100%;
-      font-family: var(--font);
-      background: var(--dark);
-      color: var(--text);
-      overflow-x: hidden;
-    }
+    * { box-sizing: border-box; margin: 0; padding: 0; }
+    body { font-family: 'Inter', sans-serif; background: var(--bg); color: var(--text); overflow-x: hidden; }
 
-    /* ═══════════════════════════════════════
-         LAYOUT  —  split: left 55% | right 45%
-      ═══════════════════════════════════════ */
-    .page {
-      display: flex;
-      height: 100vh;
-      width: 100vw;
-    }
+    .split-layout { display: flex; height: 100vh; width: 100vw; }
 
-    /* ─── LEFT PANEL ─── */
+    /* Left Panel */
     .left-panel {
-      flex: 0 0 55%;
-      position: relative;
-      overflow: hidden;
+      flex: 1;
+      background: radial-gradient(circle at 0% 0%, rgba(29, 158, 117, 0.15) 0%, transparent 50%),
+                  linear-gradient(135deg, #0A0F1C 0%, #111827 100%);
       display: flex;
       flex-direction: column;
       justify-content: center;
-      align-items: flex-start;
-      padding: 60px 56px;
+      padding: 80px;
+      position: relative;
+      overflow: hidden;
     }
 
-    /* Animated conic gradient background */
-    .left-panel::before {
-      content: "";
-      position: absolute;
-      inset: -100px;
-      background: conic-gradient(from 220deg at 60% 40%,
-          #0a0a1a 0deg,
-          #1a0a3a 60deg,
-          #6c63ff 120deg,
-          #48cfad 180deg,
-          #f7971e 240deg,
-          #6c63ff 300deg,
-          #0a0a1a 360deg);
-      animation: rotateBg 18s linear infinite;
-      filter: blur(0px);
-      opacity: 0.85;
-      z-index: 0;
-    }
-
-    /* Dark vignette overlay */
     .left-panel::after {
       content: "";
       position: absolute;
-      inset: 0;
-      background:
-        radial-gradient(ellipse 70% 70% at 30% 50%, transparent 0%, rgba(10, 10, 26, 0.82) 100%),
-        linear-gradient(to right, rgba(10, 10, 26, 0) 0%, rgba(10, 10, 26, 0.6) 100%);
-      z-index: 1;
+      bottom: -100px;
+      right: -100px;
+      width: 400px;
+      height: 400px;
+      background: radial-gradient(circle, rgba(59, 130, 246, 0.05) 0%, transparent 70%);
     }
 
-    @keyframes rotateBg {
-      0% {
-        transform: rotate(0deg) scale(1.3);
-      }
-
-      100% {
-        transform: rotate(360deg) scale(1.3);
-      }
-    }
-
-    /* Floating orbs on left panel */
-    .orb {
-      position: absolute;
-      border-radius: 50%;
-      filter: blur(60px);
-      z-index: 1;
-      pointer-events: none;
-      animation: floatOrb ease-in-out infinite alternate;
-    }
-
-    .orb-1 {
-      width: 340px;
-      height: 340px;
-      background: rgba(108, 99, 255, 0.35);
-      top: -80px;
-      left: -60px;
-      animation-duration: 8s;
-    }
-
-    .orb-2 {
-      width: 280px;
-      height: 280px;
-      background: rgba(72, 207, 173, 0.25);
-      bottom: 40px;
-      left: 40%;
-      animation-duration: 11s;
-      animation-delay: 2s;
-    }
-
-    .orb-3 {
-      width: 200px;
-      height: 200px;
-      background: rgba(247, 151, 30, 0.2);
-      top: 50%;
-      left: 25%;
-      animation-duration: 9s;
-      animation-delay: 4s;
-    }
-
-    @keyframes floatOrb {
-      0% {
-        transform: translate(0, 0) scale(1);
-      }
-
-      100% {
-        transform: translate(30px, -40px) scale(1.08);
-      }
-    }
-
-    /* Stars on left panel */
-    .stars {
-      position: absolute;
-      inset: 0;
-      z-index: 1;
-      pointer-events: none;
-      overflow: hidden;
-    }
-
-    .star {
-      position: absolute;
-      width: 2px;
-      height: 2px;
-      background: #fff;
-      border-radius: 50%;
-      animation: twinkle ease-in-out infinite alternate;
-    }
-
-    @keyframes twinkle {
-      0% {
-        opacity: 0.1;
-        transform: scale(1);
-      }
-
-      100% {
-        opacity: 0.8;
-        transform: scale(1.5);
-      }
-    }
-
-    .left-content {
-      position: relative;
-      z-index: 2;
-      max-width: 480px;
-    }
-
-    .brand-badge {
-      display: inline-flex;
-      align-items: center;
-      gap: 8px;
-      background: rgba(108, 99, 255, 0.18);
-      border: 1px solid rgba(108, 99, 255, 0.4);
-      border-radius: 100px;
-      padding: 6px 16px;
-      font-size: 0.75rem;
-      font-weight: 600;
-      color: #a5b4fc;
-      letter-spacing: 1px;
-      text-transform: uppercase;
-      margin-bottom: 28px;
-    }
-
-    .brand-badge .dot {
-      width: 7px;
-      height: 7px;
-      border-radius: 50%;
-      background: #6c63ff;
-      box-shadow: 0 0 8px #6c63ff;
-      animation: pulse 2s ease infinite;
-    }
-
-    @keyframes pulse {
-
-      0%,
-      100% {
-        box-shadow: 0 0 8px #6c63ff;
-      }
-
-      50% {
-        box-shadow: 0 0 16px #6c63ff, 0 0 28px rgba(108, 99, 255, 0.5);
-      }
-    }
-
-    .left-content h1 {
-      font-size: clamp(2.2rem, 3.5vw, 3.2rem);
-      font-weight: 800;
-      line-height: 1.1;
-      letter-spacing: -0.5px;
-      margin-bottom: 20px;
-      background: linear-gradient(135deg, #fff 0%, rgba(255, 255, 255, 0.65) 100%);
-      -webkit-background-clip: text;
-      -webkit-text-fill-color: transparent;
-      background-clip: text;
-    }
-
-    .left-content h1 span {
-      background: linear-gradient(135deg, #6c63ff, #48cfad);
-      -webkit-background-clip: text;
-      -webkit-text-fill-color: transparent;
-      background-clip: text;
-    }
-
-    .left-content p {
-      font-size: 1rem;
-      color: rgba(255, 255, 255, 0.5);
-      line-height: 1.75;
-      max-width: 380px;
-      margin-bottom: 36px;
-    }
-
-    /* Feature pills */
-    .features {
-      display: flex;
-      flex-direction: column;
-      gap: 12px;
-    }
-
-    .feat {
+    .brand-id {
       display: flex;
       align-items: center;
       gap: 12px;
-      font-size: 0.88rem;
-      color: rgba(255, 255, 255, 0.65);
+      margin-bottom: 40px;
     }
 
-    .feat-icon {
-      width: 32px;
-      height: 32px;
-      border-radius: 8px;
-      display: flex;
-      align-items: center;
-      justify-content: center;
-      font-size: 0.9rem;
-      flex-shrink: 0;
-    }
-
-    .feat-icon.purple {
-      background: rgba(108, 99, 255, 0.2);
-      border: 1px solid rgba(108, 99, 255, 0.3);
-    }
-
-    .feat-icon.teal {
-      background: rgba(72, 207, 173, 0.2);
-      border: 1px solid rgba(72, 207, 173, 0.3);
-    }
-
-    .feat-icon.orange {
-      background: rgba(247, 151, 30, 0.2);
-      border: 1px solid rgba(247, 151, 30, 0.3);
-    }
-
-    /* ─── RIGHT PANEL ─── */
-    .right-panel {
-      flex: 0 0 45%;
-      display: flex;
-      align-items: center;
-      justify-content: center;
-      background: var(--card-bg);
-      position: relative;
-      overflow: hidden;
-      padding: 40px 32px;
-    }
-
-    /* Subtle grid pattern */
-    .right-panel::before {
-      content: "";
-      position: absolute;
-      inset: 0;
-      background-image:
-        linear-gradient(rgba(255, 255, 255, 0.025) 1px, transparent 1px),
-        linear-gradient(90deg, rgba(255, 255, 255, 0.025) 1px, transparent 1px);
-      background-size: 40px 40px;
-      z-index: 0;
-      pointer-events: none;
-    }
-
-    /* Top-right soft glow */
-    .right-panel::after {
-      content: "";
-      position: absolute;
-      top: -80px;
-      right: -80px;
-      width: 320px;
-      height: 320px;
-      background: radial-gradient(circle, rgba(108, 99, 255, 0.12) 0%, transparent 70%);
-      z-index: 0;
-      pointer-events: none;
-    }
-
-    .form-container {
-      position: relative;
-      z-index: 9999;
-      width: 100%;
-      max-width: 380px;
-      pointer-events: auto;
-    }
-
-    .form-header {
-      margin-bottom: 36px;
-    }
-
-    .form-header h2 {
-      font-size: 1.85rem;
-      font-weight: 700;
-      letter-spacing: -0.3px;
-      color: var(--text);
-      margin-bottom: 6px;
-    }
-
-    .form-header p {
-      font-size: 0.88rem;
-      color: var(--muted);
-    }
-
-    .form-header p a {
-      color: #a5b4fc;
-      text-decoration: none;
-      font-weight: 500;
-      transition: color 0.2s;
-    }
-
-    .form-header p a:hover {
-      color: #fff;
-    }
-
-    /* ─── Error alert ─── */
-    .alert-error {
-      display: flex;
-      align-items: center;
-      gap: 10px;
-      background: rgba(239, 68, 68, 0.1);
-      border: 1px solid rgba(239, 68, 68, 0.3);
+    .brand-logo {
+      width: 44px;
+      height: 44px;
+      background: var(--accent);
       border-radius: 12px;
-      padding: 13px 16px;
-      margin-bottom: 22px;
-      font-size: 0.82rem;
-      color: #fca5a5;
-      animation: shakeIn 0.4s ease;
-    }
-
-    .alert-error .err-icon {
-      font-size: 1rem;
-      flex-shrink: 0;
-    }
-
-    @keyframes shakeIn {
-
-      0%,
-      100% {
-        transform: translateX(0);
-      }
-
-      20% {
-        transform: translateX(-6px);
-      }
-
-      40% {
-        transform: translateX(6px);
-      }
-
-      60% {
-        transform: translateX(-4px);
-      }
-
-      80% {
-        transform: translateX(4px);
-      }
-    }
-
-    /* ─── Floating-label inputs ─── */
-    .field-group {
       display: flex;
-      flex-direction: column;
-      gap: 18px;
-      margin-bottom: 28px;
+      align-items: center;
+      justify-content: center;
+      font-size: 1.5rem;
+      box-shadow: 0 0 20px var(--accent-glow);
     }
 
-    .field {
+    .brand-name { font-family: 'Space Grotesk', sans-serif; font-size: 1.25rem; font-weight: 700; letter-spacing: -0.02em; }
+
+    .hero-text h1 { font-family: 'Space Grotesk', sans-serif; font-size: 4rem; line-height: 1; margin-bottom: 24px; letter-spacing: -0.04em; }
+    .hero-text h1 span { color: var(--accent); }
+    .hero-text p { font-size: 1.2rem; color: var(--muted); line-height: 1.6; max-width: 500px; }
+
+    /* Right Panel */
+    .right-panel {
+      width: 500px;
+      background: var(--surface);
+      border-left: 1px solid var(--border);
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      padding: 40px;
       position: relative;
+      z-index: 10;
+      box-shadow: -20px 0 60px rgba(0,0,0,0.5);
     }
 
-    .field input {
+    .form-box { width: 100%; max-width: 360px; }
+    .form-box h2 { font-size: 2rem; font-weight: 800; margin-bottom: 8px; letter-spacing: -0.02em; }
+    .form-box p { color: var(--muted); font-size: 0.9rem; margin-bottom: 32px; }
+
+    .input-field { margin-bottom: 20px; position: relative; }
+    .input-field label { display: block; font-size: 0.75rem; font-weight: 700; text-transform: uppercase; color: var(--muted); margin-bottom: 8px; letter-spacing: 0.05em; }
+    .input-field input {
       width: 100%;
-      padding: 20px 18px 8px;
-      font-family: var(--font);
-      font-size: 0.96rem;
-      color: var(--text);
-      background: var(--input-bg);
+      background: rgba(0, 0, 0, 0.3);
       border: 1px solid var(--border);
-      border-radius: 14px;
+      border-radius: 10px;
+      padding: 14px 16px;
+      color: var(--text);
+      font-family: inherit;
       outline: none;
-      transition: border-color 0.3s, box-shadow 0.3s, background 0.3s;
-      caret-color: var(--brand);
-      pointer-events: auto !important;
-      -webkit-user-select: auto !important;
-      user-select: auto !important;
+      transition: all 0.2s;
     }
+    .input-field input:focus { border-color: var(--accent); box-shadow: 0 0 0 4px rgba(29, 158, 117, 0.1); }
 
-    .field input:focus,
-    .field input:not(:placeholder-shown) {
-      border-color: rgba(108, 99, 255, 0.5);
-      background: #1a1a32;
-      box-shadow: 0 0 0 4px rgba(108, 99, 255, 0.1);
-    }
-
-    .field label {
-      position: absolute;
-      left: 18px;
-      top: 50%;
-      transform: translateY(-50%);
-      font-size: 0.9rem;
-      color: var(--muted);
-      pointer-events: none;
-      transition: top 0.22s ease, font-size 0.22s ease, color 0.22s ease, transform 0.22s ease;
-      transform-origin: left center;
-    }
-
-    /* Float label up when focused or filled */
-    .field input:focus+label,
-    .field input:not(:placeholder-shown)+label {
-      top: 10px;
-      transform: translateY(0) scale(0.78);
-      color: #a5b4fc;
-      font-weight: 500;
-    }
-
-    /* Icon inside input */
-    .field .field-icon {
-      position: absolute;
-      right: 16px;
-      top: 50%;
-      transform: translateY(-50%);
-      color: var(--muted);
-      font-size: 1rem;
-      pointer-events: none;
-      transition: color 0.3s;
-    }
-
-    .field input:focus~.field-icon {
-      color: var(--brand);
-    }
-
-    /* ─── Submit button ─── */
-    .btn-login {
-      position: relative;
+    .btn-submit {
       width: 100%;
-      padding: 15px;
-      font-family: var(--font);
-      font-size: 0.98rem;
-      font-weight: 600;
-      color: #fff;
-      background: linear-gradient(135deg, #6c63ff 0%, #4f46e5 100%);
+      background: var(--accent);
+      color: white;
       border: none;
-      border-radius: 14px;
+      border-radius: 10px;
+      padding: 16px;
+      font-weight: 800;
+      font-size: 1rem;
       cursor: pointer;
-      overflow: hidden;
-      transition: transform 0.2s, box-shadow 0.3s;
-      box-shadow: 0 8px 30px rgba(108, 99, 255, 0.45);
-      letter-spacing: 0.3px;
-      margin-bottom: 22px;
+      box-shadow: 0 8px 24px rgba(29, 158, 117, 0.3);
+      transition: all 0.2s;
+      margin-top: 10px;
     }
+    .btn-submit:hover { transform: translateY(-2px); box-shadow: 0 12px 30px rgba(29, 158, 117, 0.4); }
 
-    /* Shimmer sweep */
-    .btn-login::before {
-      content: "";
-      position: absolute;
-      top: 0;
-      left: -100%;
-      width: 60%;
-      height: 100%;
-      background: linear-gradient(90deg, transparent, rgba(255, 255, 255, 0.18), transparent);
-      transform: skewX(-20deg);
-      transition: left 0.55s ease;
-    }
+    .alt-action { text-align: center; margin-top: 32px; font-size: 0.9rem; color: var(--muted); }
+    .alt-action a { color: var(--accent); text-decoration: none; font-weight: 700; margin-left: 4px; }
+    .alt-action a:hover { text-decoration: underline; }
 
-    .btn-login:hover::before {
-      left: 160%;
-    }
+    .error-tag { background: rgba(239, 68, 68, 0.1); border: 1px solid rgba(239, 68, 68, 0.2); color: #F87171; padding: 12px; border-radius: 8px; font-size: 0.85rem; margin-bottom: 24px; text-align: center; }
 
-    .btn-login:hover {
-      transform: translateY(-2px);
-      box-shadow: 0 14px 36px rgba(108, 99, 255, 0.55);
-    }
-
-    .btn-login:active {
-      transform: translateY(0);
-      box-shadow: 0 4px 14px rgba(108, 99, 255, 0.35);
-    }
-
-    /* ─── Divider ─── */
-    .divider {
-      display: flex;
-      align-items: center;
-      gap: 14px;
-      margin-bottom: 22px;
-      color: var(--muted);
-      font-size: 0.78rem;
-      letter-spacing: 0.5px;
-    }
-
-    .divider::before,
-    .divider::after {
-      content: "";
-      flex: 1;
-      height: 1px;
-      background: var(--border);
-    }
-
-    /* ─── Social / secondary CTA ─── */
-    .signup-prompt {
-      text-align: center;
-      font-size: 0.85rem;
-      color: var(--muted);
-      margin-top: 4px;
-    }
-
-    .signup-prompt a {
-      color: #a5b4fc;
-      font-weight: 600;
-      text-decoration: none;
-      margin-left: 4px;
-      transition: color 0.2s;
-    }
-
-    .signup-prompt a:hover {
-      color: #fff;
-    }
-
-    /* ─── Bottom badge ─── */
-    .secure-badge {
-      display: flex;
-      align-items: center;
-      justify-content: center;
-      gap: 6px;
-      margin-top: 28px;
-      font-size: 0.75rem;
-      color: rgba(255, 255, 255, 0.25);
-    }
-
-    /* Eye toggle */
-    .pw-toggle {
-      position: absolute;
-      right: 14px;
-      top: 50%;
-      transform: translateY(-50%);
-      background: none;
-      border: none;
-      color: #34d399;
-      cursor: pointer;
-      padding: 0;
-      z-index: 5;
-      display: flex;
-      align-items: center;
-      justify-content: center;
-      transition: color 0.2s, opacity 0.2s;
-      opacity: 0.6;
-    }
-    .pw-toggle:hover { 
-      opacity: 1;
-      color: #34d399;
-    }
-    .pw-toggle svg { width: 18px; height: 18px; }
-
-    /* ─── MOBILE: stack vertically ─── */
-    @media (max-width: 768px) {
-      .page {
-        flex-direction: column;
-        height: auto;
-        min-height: 100dvh;
-        overflow-y: visible;
-      }
-
-      .left-panel {
-        display: none !important;
-      }
-      
-      .orb, .stars, .star {
-        display: none !important;
-      }
-
-      .right-panel {
-        flex: 1;
-        width: 100%;
-        padding: 40px 20px;
-        background: var(--dark) !important;
-        overflow-y: auto !important;
-      }
-      
-      .form-container {
-        max-width: 100%;
-      }
-      
-      .field label {
-        position: static !important;
-        transform: none !important;
-        display: block;
-        margin-bottom: 8px;
-        font-size: 0.85rem;
-      }
-      
-      .field input {
-        padding: 14px 16px !important;
-        font-size: 16px !important; /* Prevents iOS/Chrome zoom on focus */
-      }
-      
-      .field input:placeholder-shown + label {
-        display: block !important;
-      }
-
-      html,
-      body {
-        overflow: auto;
-      }
-
-      .features {
-        display: none;
-      }
-
-      .left-content h1 {
-        font-size: 1.8rem;
-      }
-
-      .left-content p {
-        display: none;
-      }
+    @media (max-width: 1024px) {
+      .left-panel { display: none; }
+      .right-panel { width: 100%; border: none; }
     }
   </style>
 </head>
 
 <body>
-  <div class="page">
-
-    <!-- ══════════════ LEFT PANEL ══════════════ -->
+  <div class="split-layout">
     <div class="left-panel">
-      <!-- Animated orbs -->
-      <div class="orb orb-1"></div>
-      <div class="orb orb-2"></div>
-      <div class="orb orb-3"></div>
-
-      <!-- Stars -->
-      <div class="stars" id="stars"></div>
-
-      <div class="left-content">
-        <div class="brand-badge">
-          <span class="dot"></span>
-          Attendance Tracker
-        </div>
-
-        <h1>Track time.<br><span>Work smarter.</span></h1>
-
-        <p>A beautifully designed attendance platform to log your check-ins, monitor weekly progress, and stay ahead of
-          your goals.</p>
-
-        <div class="features">
-          <div class="feat">
-            <div class="feat-icon purple">⏱</div>
-            <span>Real-time check-in & check-out logging</span>
-          </div>
-          <div class="feat">
-            <div class="feat-icon teal">📊</div>
-            <span>Weekly summaries powered by Pandas</span>
-          </div>
-          <div class="feat">
-            <div class="feat-icon orange">📅</div>
-            <span>Monthly calendar with Excel export</span>
-          </div>
-        </div>
+      <div class="brand-id">
+        <div class="brand-logo">📅</div>
+        <div class="brand-name">Attendance Tracker</div>
+      </div>
+      <div class="hero-text">
+        <h1>Master your <span>Presence.</span></h1>
+        <p>Enterprise-grade logging and analytics. Record your sessions, manage your ledger, and optimize your work-life balance.</p>
       </div>
     </div>
 
-    <!-- ══════════════ RIGHT PANEL ══════════════ -->
     <div class="right-panel">
-      <div class="form-container">
-
-        <div class="form-header">
-          <h2>Welcome back 👋</h2>
-          <p>Don't have an account? <a href="{% url 'signup' %}">Sign up free</a></p>
-        </div>
+      <div class="form-box">
+        <h2>Welcome Back</h2>
+        <p>Access your professional command center.</p>
 
         {% if form.errors %}
-        <div class="alert-error">
-          <span class="err-icon">⚠️</span>
-          <span>Incorrect username or password. Please try again.</span>
-        </div>
+        <div class="error-tag">Invalid credentials. Please re-verify.</div>
         {% endif %}
 
-        <form method="post" novalidate>
+        <form method="post">
           {% csrf_token %}
-
-          <div class="field-group">
-            <div class="field">
-              <input type="text" name="username" id="id_username" placeholder=" " autocomplete="username"
-                required />
-              <label for="id_username">Username</label>
-              <span class="field-icon">👤</span>
-            </div>
-
-            <div class="field">
-              <input type="password" name="password" id="id_password" placeholder=" " autocomplete="current-password"
-                required />
-              <label for="id_password">Password</label>
-              <button type="button" class="pw-toggle" onclick="togglePw('id_password', this)">
-                <svg fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 12a3 3 0 11-6 0 3 3 0 016 0z"/><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M2.458 12C3.732 7.943 7.523 5 12 5c4.478 0 8.268 2.943 9.542 7-1.274 4.057-5.064 7-9.542 7-4.477 0-8.268-2.943-9.542-7z"/></svg>
-              </button>
-            </div>
+          <div class="input-field">
+            <label>Security ID / Username</label>
+            <input type="text" name="username" required autocomplete="username" />
+          </div>
+          <div class="input-field">
+            <label>Access Key / Password</label>
+            <input type="password" name="password" required autocomplete="current-password" />
+          </div>
+          
+          <div style="text-align: right; margin-top: -12px; margin-bottom: 24px;">
+            <a href="{% url 'password_reset' %}" style="color: var(--muted); font-size: 0.8rem; text-decoration: none;">Secure recovery?</a>
           </div>
 
-          <div style="text-align: right; margin-bottom: 22px; margin-top: -16px;">
-             <a href="{% url 'password_reset' %}" style="color: #a5b4fc; font-size: 0.85rem; text-decoration: none; font-weight: 500; transition: color 0.2s;" onmouseover="this.style.color='#fff'" onmouseout="this.style.color='#a5b4fc'">Forgot password?</a>
-          </div>
-
-          <button type="submit" class="btn-login">
-            Sign In →
-          </button>
+          <button type="submit" class="btn-submit">Initiate Logon →</button>
         </form>
 
-        <div class="divider">or</div>
-
-        <div class="signup-prompt">
-          New to Attendance Tracker?
-          <a href="{% url 'signup' %}">Create an account</a>
+        <div class="alt-action">
+          New operative? <a href="{% url 'signup' %}">Request account</a>
         </div>
-
-        <div class="secure-badge">
-          🔐 &nbsp;Secured with Django authentication
-        </div>
-
       </div>
     </div>
-
-  </div><!-- .page -->
-
-  <script>
-    // Generate random twinkling stars in the left panel
-    const container = document.getElementById('stars');
-    for (let i = 0; i < 60; i++) {
-      const s = document.createElement('div');
-      s.className = 'star';
-      s.style.cssText = `
-          left: ${Math.random() * 100}%;
-          top:  ${Math.random() * 100}%;
-          animation-duration: ${1.5 + Math.random() * 3}s;
-          animation-delay: ${-Math.random() * 4}s;
-          width:  ${Math.random() > 0.7 ? 3 : 2}px;
-          height: ${Math.random() > 0.7 ? 3 : 2}px;
-          opacity: ${0.1 + Math.random() * 0.4};
-        `;
-        container.appendChild(s);
-      }
-
-    function togglePw(id, btn) {
-      const inp = document.getElementById(id);
-      if (inp.type === 'password') {
-        inp.type = 'text';
-        btn.innerHTML = '<svg fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13.875 18.825A10.05 10.05 0 0112 19c-4.478 0-8.268-2.943-9.543-7a9.97 9.97 0 011.563-3.029m5.858.908a3 3 0 114.243 4.243M9.878 9.878l4.242 4.242M9.88 9.88l-3.29-3.29m7.532 7.532l3.29 3.29M3 3l18 18"/></svg>';
-      } else {
-        inp.type = 'password';
-        btn.innerHTML = '<svg fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 12a3 3 0 11-6 0 3 3 0 016 0z"/><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M2.458 12C3.732 7.943 7.523 5 12 5c4.478 0 8.268 2.943 9.542 7-1.274 4.057-5.064 7-9.542 7-4.477 0-8.268-2.943-9.542-7z"/></svg>';
-      }
-    }
-
-    if ('serviceWorker' in navigator) {
-      window.addEventListener('load', () => {
-        navigator.serviceWorker.register('/static/sw.js');
-      });
-    }
-  </script>
+  </div>
 </body>
 
 </html>

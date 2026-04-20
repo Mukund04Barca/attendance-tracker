@@ -13,8 +13,12 @@ class Holiday(models.Model):
 class AttendanceRecord(models.Model):
     user = models.ForeignKey(User, on_delete=models.CASCADE)
     date = models.DateField()
+    # Actual check-in/out
     check_in = models.DateTimeField(null=True, blank=True)
     check_out = models.DateTimeField(null=True, blank=True)
+    # Independent timesheet fields
+    ts_check_in = models.DateTimeField(null=True, blank=True)
+    ts_check_out = models.DateTimeField(null=True, blank=True)
     is_holiday = models.BooleanField(default=False)
     allowance_hours = models.FloatField(default=0.0)
     leave_type = models.CharField(max_length=50, null=True, blank=True)
@@ -26,6 +30,21 @@ class AttendanceRecord(models.Model):
 
     def __str__(self) -> str:
         return f"{self.user.username} - {self.date}"
+
+
+class TimesheetRecord(models.Model):
+    """Derived timesheet data separate from source AttendanceRecord."""
+    attendance_record = models.OneToOneField(
+        AttendanceRecord, 
+        on_delete=models.CASCADE, 
+        related_name="timesheet_derived"
+    )
+    ts_check_in = models.DateTimeField(null=True, blank=True)
+    ts_check_out = models.DateTimeField(null=True, blank=True)
+    updated_at = models.DateTimeField(auto_now=True)
+
+    def __str__(self) -> str:
+        return f"Timesheet for {self.attendance_record.date} ({self.attendance_record.user.username})"
 
 
 class TimesheetActivity(models.Model):

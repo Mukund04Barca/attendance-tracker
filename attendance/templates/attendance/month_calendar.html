@@ -1,587 +1,414 @@
 {% extends "base.html" %}
+{% load attendance_extras %}
 
-{% block title %}Monthly Roster | Attendance{% endblock %}
+{% block title %}Monthly Roster | Precision Time{% endblock %}
 {% block nav_month_active %}active{% endblock %}
-{% block header_title %}Monthly Roster{% endblock %}
 
 {% block extra_head %}
 <style>
-  /* ── Toolbar ── */
-  .cal-toolbar {
+  :root {
+    --card-bg: rgba(255, 255, 255, 0.03);
+    --card-border: rgba(255, 255, 255, 0.08);
+    --card-hover-border: rgba(0, 245, 255, 0.4);
+    --today-bg: rgba(0, 245, 255, 0.1);
+    --today-border: rgba(0, 245, 255, 0.6);
+  }
+
+  .roster-header {
     display: flex;
     justify-content: space-between;
-    align-items: center;
-    margin-bottom: 20px;
-    flex-wrap: wrap;
-    gap: 12px;
+    align-items: flex-end;
+    margin-bottom: 30px;
   }
 
-  .cal-month-nav {
+  .month-title {
+    font-size: 2.5rem;
+    font-weight: 900;
+    letter-spacing: -1.5px;
+    margin: 0;
+    background: linear-gradient(135deg, #fff 0%, rgba(255,255,255,0.4) 100%);
+    -webkit-background-clip: text;
+    background-clip: text;
+    -webkit-text-fill-color: transparent;
+  }
+
+  .stats-strip {
     display: flex;
-    align-items: center;
-    gap: 8px;
+    gap: 24px;
+    margin-top: 8px;
   }
 
-  .cal-nav-btn {
-    background: rgba(255, 255, 255, 0.04);
-    border: 1px solid rgba(255, 255, 255, 0.1);
-    border-radius: 9px;
-    color: #94a3b8;
-    padding: 7px 16px;
-    font-size: 0.82rem;
-    cursor: pointer;
-    text-decoration: none;
-    transition: background 0.18s, color 0.18s;
-    font-family: 'Inter', sans-serif;
-  }
-
-  .cal-nav-btn:hover {
-    background: rgba(255, 255, 255, 0.08);
-    color: #e2e8f0;
-  }
-
-  .cal-month-label {
-    font-size: 1.1rem;
-    font-weight: 800;
-    letter-spacing: -0.3px;
-    color: #e2e8f0;
-    padding: 0 6px;
-  }
-
-  .cal-actions {
-    display: flex;
-    gap: 8px;
-  }
-
-  /* ── Calendar grid ── */
-  .cal-grid-outer {
-    width: 100%;
-    overflow-x: auto;
-    -webkit-overflow-scrolling: touch;
-    scrollbar-width: none;
-    background: #080f1e;
-    border: 1px solid rgba(255, 255, 255, 0.07);
-    border-radius: 18px;
-  }
-  
-  .cal-grid-outer::-webkit-scrollbar {
-    display: none;
-  }
-
-  .cal-grid-wrap {
-    min-width: 600px;
-  }
-
-  .cal-head {
-    display: grid;
-    grid-template-columns: repeat(7, 1fr);
-    border-bottom: 1px solid rgba(255, 255, 255, 0.06);
-  }
-
-  .cal-head-cell {
-    text-align: center;
-    padding: 12px 4px;
-    font-size: 0.65rem;
-    font-weight: 700;
-    letter-spacing: 1px;
-    text-transform: uppercase;
-    color: #475569;
-  }
-
-  .cal-head-cell:first-child {
-    color: #ef4444;
-  }
-
-  /* Sun */
-  .cal-head-cell:last-child {
-    color: #60a5fa;
-  }
-
-  /* Sat */
-
-  .cal-body {
-    display: grid;
-    grid-template-columns: repeat(7, 1fr);
-  }
-
-  .cal-cell {
-    min-height: 100px;
-    border-right: 1px solid rgba(255, 255, 255, 0.04);
-    border-bottom: 1px solid rgba(255, 255, 255, 0.04);
-    padding: 8px;
-    position: relative;
-    transition: background 0.15s;
+  .stat-item {
     display: flex;
     flex-direction: column;
   }
 
-  .cal-cell:nth-child(7n) {
-    border-right: none;
+  .stat-label {
+    font-size: 0.65rem;
+    text-transform: uppercase;
+    letter-spacing: 2px;
+    color: var(--text-dim);
+    margin-bottom: 2px;
   }
 
-  .cal-cell:hover {
-    background: rgba(96, 165, 250, 0.04);
+  .stat-value {
+    font-size: 1.1rem;
+    font-weight: 700;
+    color: var(--cyan);
   }
 
-  .cal-cell.other-month {
-    background: rgba(0, 0, 0, 0.15);
+  /* Grid Layout */
+  .glass-roster {
+    display: grid;
+    grid-template-columns: repeat(7, 1fr);
+    gap: 12px;
+    perspective: 1000px;
   }
 
-  .cal-cell.today-cell {
-    background: rgba(37, 99, 235, 0.07);
+  .dow-header {
+    text-align: center;
+    font-size: 0.7rem;
+    font-weight: 800;
+    letter-spacing: 2px;
+    color: var(--text-dim);
+    padding: 10px 0;
+    text-transform: uppercase;
   }
 
-  .cal-cell.holiday-cell {
-    background: rgba(251, 191, 36, 0.04);
+  .day-card {
+    background: var(--card-bg);
+    border: 1px solid var(--card-border);
+    border-radius: 16px;
+    padding: 16px;
+    min-height: 140px; /* Slightly taller for actions */
+    transition: all 0.4s cubic-bezier(0.23, 1, 0.32, 1);
+    position: relative;
+    overflow: hidden;
+    display: flex;
+    flex-direction: column;
+    justify-content: space-between;
+    backdrop-filter: blur(10px);
+    cursor: pointer;
   }
 
-  /* Day number + actions row */
-  .cal-cell-top {
+  .day-card:hover {
+    transform: translateY(-4px) scale(1.02);
+    border-color: var(--card-hover-border);
+    background: rgba(255, 255, 255, 0.05);
+    box-shadow: 0 20px 40px rgba(0, 0, 0, 0.4), 0 0 20px rgba(0, 245, 255, 0.1);
+  }
+
+  .day-card.other-month {
+    opacity: 0.2;
+    filter: grayscale(1);
+    pointer-events: none;
+  }
+
+  .day-card.today {
+    background: var(--today-bg);
+    border: 1px solid var(--today-border);
+    box-shadow: 0 0 30px rgba(0, 245, 255, 0.1);
+  }
+
+  .day-card.holiday {
+    border-color: rgba(255, 165, 0, 0.3);
+  }
+
+  .day-num {
+    font-size: 1.5rem;
+    font-weight: 800;
+    line-height: 1;
+    color: var(--text-bright);
+    opacity: 0.8;
+  }
+
+  .today .day-num {
+    color: var(--cyan);
+    opacity: 1;
+    text-shadow: 0 0 10px rgba(0, 245, 255, 0.5);
+  }
+
+  .day-content {
+    margin-top: 10px;
+  }
+
+  .time-row {
     display: flex;
     justify-content: space-between;
-    align-items: flex-start;
-    margin-bottom: 6px;
+    font-size: 0.7rem;
+    color: var(--text-dim);
+    margin-bottom: 2px;
   }
 
-  .cal-day-num {
-    font-size: 0.82rem;
-    font-weight: 700;
-    color: #94a3b8;
-    line-height: 1;
+  .time-row span:last-child {
+    color: var(--text-mid);
+    font-weight: 600;
   }
 
-  .cal-cell.other-month .cal-day-num {
-    color: #1e293b;
+  .hours-pill {
+    margin-top: 8px;
+    height: 4px;
+    background: rgba(255, 255, 255, 0.05);
+    border-radius: 2px;
+    overflow: hidden;
+    position: relative;
   }
 
-  .cal-cell.today-cell .cal-day-num {
-    background: #2563eb;
-    color: #fff;
-    width: 24px;
-    height: 24px;
+  .hours-bar {
+    height: 100%;
+    background: var(--emerald);
+    box-shadow: 0 0 10px var(--emerald);
+    border-radius: 2px;
+    transition: width 1s ease-out;
+  }
+
+  .total-tag {
+    position: absolute;
+    bottom: 12px;
+    right: 12px;
+    font-size: 0.6rem;
+    font-weight: 800;
+    color: var(--emerald);
+    letter-spacing: 0.5px;
+  }
+
+  .holiday-tag {
+    position: absolute;
+    top: 12px;
+    right: 12px;
+    font-size: 0.55rem;
+    font-weight: 900;
+    color: #ffa500;
+    text-transform: uppercase;
+    letter-spacing: 1px;
+  }
+
+  /* Controls */
+  .btn-nav-round {
+    width: 40px;
+    height: 40px;
     border-radius: 50%;
     display: flex;
     align-items: center;
     justify-content: center;
-    font-size: 0.75rem;
+    background: rgba(255,255,255,0.05);
+    border: 1px solid rgba(255,255,255,0.1);
+    color: #fff;
+    transition: all 0.3s;
   }
 
-  .cal-holiday-badge {
-    background: rgba(251, 191, 36, 0.15);
-    border: 1px solid rgba(251, 191, 36, 0.3);
-    color: #fbbf24;
-    border-radius: 4px;
-    padding: 1px 5px;
-    font-size: 0.58rem;
-    font-weight: 700;
-    letter-spacing: 0.5px;
+  .btn-nav-round:hover {
+    background: var(--cyan);
+    border-color: var(--cyan);
+    color: #000;
+    box-shadow: 0 0 20px rgba(0, 245, 255, 0.4);
   }
 
-  /* Edit pencil */
-  .cal-edit-btn {
-    background: rgba(96, 165, 250, 0.1);
-    border: 1px solid rgba(96, 165, 250, 0.2);
-    color: #60a5fa;
-    border-radius: 5px;
-    padding: 1px 6px;
-    font-size: 0.7rem;
-    cursor: pointer;
-    line-height: 1.6;
-    transition: background 0.2s;
-    opacity: 0;
-    transition: opacity 0.2s, background 0.2s;
-  }
-
-  .cal-cell:hover .cal-edit-btn {
-    opacity: 1;
-  }
-
-  .cal-edit-btn:hover {
-    background: rgba(96, 165, 250, 0.25);
-  }
-
-  /* Record info */
-  .cal-record {
-    flex: 1;
-    display: flex;
-    flex-direction: column;
-    gap: 3px;
-  }
-
-  .cal-time-row {
-    display: flex;
-    gap: 4px;
-    align-items: center;
-  }
-
-  .cal-time-in {
-    font-size: 0.68rem;
-    color: #34d399;
-    font-weight: 600;
-  }
-
-  .cal-time-out {
-    font-size: 0.68rem;
-    color: #60a5fa;
-    font-weight: 600;
-  }
-
-  .cal-time-sep {
-    font-size: 0.62rem;
-    color: #1e293b;
-  }
-
-  .cal-hours {
-    font-size: 1rem;
-    font-weight: 800;
-    color: #60a5fa;
-    letter-spacing: -0.3px;
-    line-height: 1.2;
-  }
-
-  .cal-hours.green {
-    color: #34d399;
-  }
-
-  /* Delete button */
-  .cal-del-btn {
-    background: rgba(239, 68, 68, 0.08);
-    border: 1px solid rgba(239, 68, 68, 0.2);
-    color: #f87171;
-    border-radius: 5px;
-    padding: 1px 5px;
-    font-size: 0.6rem;
-    cursor: pointer;
-    line-height: 1.6;
-    margin-top: auto;
-    align-self: flex-start;
-    opacity: 0;
-    transition: opacity 0.2s, background 0.2s;
-    font-family: 'Inter', sans-serif;
-  }
-
-  .cal-cell:hover .cal-del-btn {
-    opacity: 1;
-  }
-
-  .cal-cell:hover .cal-del-btn:hover {
-    background: rgba(239, 68, 68, 0.2);
-  }
-
-  /* ══════════ EDIT MODAL ══════════ */
-  .edit-modal-overlay {
+  /* Modal Styling */
+  #action-modal {
     display: none;
     position: fixed;
-    inset: 0;
-    background: rgba(0, 0, 0, 0.7);
-    z-index: 1000;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    background: rgba(0, 2, 10, 0.9);
+    backdrop-filter: blur(12px);
+    z-index: 10000;
     align-items: center;
     justify-content: center;
   }
 
-  .edit-modal-overlay.open {
-    display: flex;
-  }
-
-  .edit-modal-box {
-    background: #0f172a;
-    border: 1px solid rgba(96, 165, 250, 0.2);
+  .modal-content {
+    background: #0a0f1e;
+    border: 1px solid rgba(0, 245, 255, 0.2);
     border-radius: 20px;
-    width: 360px;
-    max-width: 95vw;
-    box-shadow: 0 30px 80px rgba(0, 0, 0, 0.7);
-    animation: modalPop 0.22s cubic-bezier(0.34, 1.56, 0.64, 1);
-  }
-
-  @keyframes modalPop {
-    from {
-      transform: scale(0.88) translateY(20px);
-      opacity: 0;
-    }
-
-    to {
-      transform: scale(1) translateY(0);
-      opacity: 1;
-    }
-  }
-
-  .modal-header {
-    padding: 18px 22px 14px;
-    border-bottom: 1px solid rgba(255, 255, 255, 0.06);
-    display: flex;
-    justify-content: space-between;
-    align-items: center;
-  }
-
-  .modal-title {
-    font-size: 0.95rem;
-    font-weight: 700;
-    color: #e2e8f0;
-  }
-
-  .modal-close {
-    background: none;
-    border: none;
-    color: #475569;
-    font-size: 1.1rem;
-    cursor: pointer;
-    padding: 0 4px;
-    transition: color 0.2s;
-  }
-
-  .modal-close:hover {
-    color: #ef4444;
-  }
-
-  .modal-body {
-    padding: 22px;
-    display: flex;
-    flex-direction: column;
-    gap: 16px;
-  }
-
-  .modal-field {
-    display: flex;
-    flex-direction: column;
-    gap: 6px;
-  }
-
-  .modal-label {
-    font-size: 0.68rem;
-    font-weight: 700;
-    letter-spacing: 1px;
-    text-transform: uppercase;
-    color: #475569;
-  }
-
-  .modal-input {
-    background: #0b1220;
-    border: 1px solid rgba(255, 255, 255, 0.1);
-    border-radius: 10px;
-    color: #e2e8f0;
-    padding: 10px 13px;
-    font-size: 0.9rem;
-    font-family: 'Inter', sans-serif;
-    outline: none;
+    padding: 30px;
     width: 100%;
-    transition: border-color 0.2s, box-shadow 0.2s;
+    max-width: 400px;
+    box-shadow: 0 40px 100px rgba(0,0,0,0.8);
   }
 
-  .modal-input:focus {
-    border-color: rgba(96, 165, 250, 0.5);
-    box-shadow: 0 0 0 3px rgba(37, 99, 235, 0.1);
-  }
+  .modal-header h3 { font-weight: 800; color: #fff; margin: 0; }
+  .modal-header p { font-size: 0.8rem; color: var(--text-dim); }
 
-  .modal-footer {
-    padding: 14px 22px 20px;
-    border-top: 1px solid rgba(255, 255, 255, 0.06);
-    display: flex;
-    justify-content: flex-end;
-    gap: 10px;
+  .form-group { margin-bottom: 20px; }
+  .form-label { display: block; font-size: 0.65rem; letter-spacing: 1px; color: var(--text-dim); margin-bottom: 8px; text-transform: uppercase; }
+  .form-control { 
+    background: rgba(255,255,255,0.05); 
+    border: 1px solid rgba(255,255,255,0.1); 
+    color: #fff; 
+    border-radius: 10px; 
+    padding: 12px;
+    width: 100%;
+    font-size: 1rem;
   }
-
-  .modal-btn-cancel {
-    background: transparent;
-    border: 1px solid rgba(255, 255, 255, 0.1);
-    color: #64748b;
-    border-radius: 9px;
-    padding: 8px 20px;
-    font-size: 0.82rem;
-    font-weight: 600;
-    cursor: pointer;
-    font-family: 'Inter', sans-serif;
-    transition: all 0.15s;
-  }
-
-  .modal-btn-cancel:hover {
-    border-color: rgba(255, 255, 255, 0.2);
-    color: #e2e8f0;
-  }
-
-  .modal-btn-save {
-    background: linear-gradient(135deg, #2563eb, #1d4ed8);
-    border: none;
-    color: #fff;
-    border-radius: 9px;
-    padding: 8px 24px;
-    font-size: 0.85rem;
-    font-weight: 700;
-    cursor: pointer;
-    font-family: 'Inter', sans-serif;
-    transition: transform 0.15s, box-shadow 0.2s;
-    box-shadow: 0 4px 14px rgba(37, 99, 235, 0.3);
-  }
-
-  .modal-btn-save:hover {
-    transform: translateY(-1px);
-    box-shadow: 0 8px 22px rgba(37, 99, 235, 0.45);
-  }
+  .form-control:focus { border-color: var(--cyan); box-shadow: 0 0 15px rgba(0,245,255,0.1); outline: none; }
 </style>
 {% endblock %}
 
 {% block content %}
-
-<!-- ── Toolbar ── -->
-<div class="cal-toolbar">
-  <div class="cal-month-nav">
-    <a href="?year={{ prev_year }}&month={{ prev_month }}" class="cal-nav-btn">‹</a>
-    <span class="cal-month-label">{{ current|date:"F Y" }}</span>
-    <a href="?year={{ next_year }}&month={{ next_month }}" class="cal-nav-btn">›</a>
-  </div>
-  <div class="cal-actions">
-    <a href="{% url 'holiday_list' %}" class="cal-nav-btn">🔔 Holidays</a>
-    <a href="{% url 'month_excel_export' %}?year={{ current.year }}&month={{ current.month }}"
-      style="background:linear-gradient(135deg,#2563eb,#1d4ed8);border:none;color:#fff;border-radius:9px;padding:7px 18px;font-size:0.82rem;font-weight:700;cursor:pointer;text-decoration:none;box-shadow:0 4px 14px rgba(37,99,235,0.3);">
-      ⬇ Export Excel
-    </a>
-  </div>
-</div>
-
-<!-- ── Legend ── -->
-<div style="display:flex;gap:16px;margin-bottom:16px;flex-wrap:wrap;">
-  <div style="display:flex;align-items:center;gap:6px;font-size:0.72rem;color:#475569;">
-    <div style="width:10px;height:10px;border-radius:3px;background:rgba(37,99,235,0.25);"></div> Today
-  </div>
-  <div style="display:flex;align-items:center;gap:6px;font-size:0.72rem;color:#475569;">
-    <div style="width:10px;height:10px;border-radius:3px;background:rgba(34,211,153,0.15);"></div> Target met
-  </div>
-  <div style="display:flex;align-items:center;gap:6px;font-size:0.72rem;color:#475569;">
-    <div style="width:10px;height:10px;border-radius:3px;background:rgba(251,191,36,0.1);"></div> Holiday
-  </div>
-  <div style="margin-left:auto;font-size:0.72rem;color:#334155;">Hover a cell to Edit / Delete</div>
-</div>
-
-<!-- ── Calendar grid ── -->
-<div class="cal-grid-outer">
-<div class="cal-grid-wrap">
-  <div class="cal-head">
-    <div class="cal-head-cell">Sun</div>
-    <div class="cal-head-cell">Mon</div>
-    <div class="cal-head-cell">Tue</div>
-    <div class="cal-head-cell">Wed</div>
-    <div class="cal-head-cell">Thu</div>
-    <div class="cal-head-cell">Fri</div>
-    <div class="cal-head-cell">Sat</div>
-  </div>
-
-  <div class="cal-body">
-    {% for week in weeks %}
-    {% for cell in week %}
-    <div class="cal-cell
-        {% if not cell.is_current_month %}other-month{% endif %}
-        {% if cell.date == today %}today-cell{% endif %}
-        {% if cell.is_holiday %}holiday-cell{% endif %}
-        {% if cell.record.hours >= 9 %}has-record-green{% endif %}
-      ">
-      <!-- Top row: day num + holiday badge + edit btn -->
-      <div class="cal-cell-top">
-        <div class="cal-day-num">{{ cell.date.day }}</div>
-        <div style="display:flex;align-items:center;gap:4px;">
-          {% if cell.is_holiday %}
-          <span class="cal-holiday-badge">H</span>
-          {% endif %}
-          {% if cell.is_current_month %}
-          <button type="button" class="cal-edit-btn" data-date="{{ cell.date|date:'Y-m-d' }}"
-            data-label="{{ cell.date|date:'d M Y' }}" data-checkin="{{ cell.record.check_in|default:'' }}"
-            data-checkout="{{ cell.record.check_out|default:'' }}" onclick="openEditModal(this)">✎</button>
-          {% endif %}
-        </div>
-      </div>
-
-      <!-- Record data -->
-      {% if cell.record %}
-      <div class="cal-record">
-        {% if cell.record.is_leave %}
-        <div class="cal-time-row" style="margin-top:6px;">
-          <span style="background:rgba(239,68,68,0.1);color:#ef4444;font-size:0.6rem;padding:2px 6px;border-radius:4px;font-weight:700;letter-spacing:1px;text-transform:uppercase;border:1px solid rgba(239,68,68,0.2);">LEAVE</span>
-        </div>
-        {% else %}
-          {% if cell.record.check_in or cell.record.check_out %}
-          <div class="cal-time-row">
-            <span class="cal-time-in">{{ cell.record.check_in|default:"—" }}</span>
-            <span class="cal-time-sep">›</span>
-            <span class="cal-time-out">{{ cell.record.check_out|default:"—" }}</span>
-          </div>
-          {% endif %}
-          {% if cell.record.hours %}
-          <div class="cal-hours {% if cell.record.hours >= 9 %}green{% endif %}">
-            {{ cell.record.hours }}h
-          </div>
-          {% endif %}
-        {% endif %}
-
-        {% if cell.is_current_month %}
-        <form method="post" action="{% url 'delete_record' cell.date|date:'Y-m-d' %}"
-          onsubmit="return confirm('Delete record for {{ cell.date|date:'d M Y' }}?')">
-          {% csrf_token %}
-          <button type="submit" class="cal-del-btn">✕ delete</button>
-        </form>
-        {% endif %}
-      </div>
-      {% endif %}
-
+<div id="action-modal">
+  <div class="modal-content">
+    <div class="modal-header mb-4">
+      <h3 id="modal-date">Date</h3>
+      <p>Quick Attendance Action</p>
     </div>
-    {% endfor %}
-    {% endfor %}
-  </div>
-</div>
-</div>
-
-<!-- ══════════ EDIT MODAL ══════════ -->
-<div id="editModal" class="edit-modal-overlay" onclick="if(event.target===this)closeEditModal()">
-  <div class="edit-modal-box">
-    <div class="modal-header">
-      <span class="modal-title" id="editModalTitle">✎ Edit Record</span>
-      <button class="modal-close" onclick="closeEditModal()">✕</button>
-    </div>
-    <form id="editForm" method="post" action="" data-base-url="{% url 'edit_record' '0000-00-00' %}">
+    <form id="edit-form" method="POST">
       {% csrf_token %}
-      <div class="modal-body">
-        <div class="modal-field">
-          <label class="modal-label">Check-in time</label>
-          <input type="text" name="check_in" id="editCheckIn" class="modal-input time-entry-mask" placeholder="HH:mm" />
-        </div>
-        <div class="modal-field">
-          <label class="modal-label">Check-out time</label>
-          <input type="text" name="check_out" id="editCheckOut" class="modal-input time-entry-mask" placeholder="HH:mm" />
-        </div>
+      <div class="form-group">
+        <label class="form-label">Check-in</label>
+        <input type="time" name="check_in" id="input-in" class="form-control">
       </div>
-      <div class="modal-footer" style="justify-content:space-between;">
-        <button type="submit" name="mark_leave" value="true" class="modal-btn-cancel" style="color:#ef4444;border-color:rgba(239,68,68,0.3);background:rgba(239,68,68,0.05);margin-right:auto;">🏝 Mark Leave</button>
-        <div style="display:flex;gap:10px;">
-          <button type="button" class="modal-btn-cancel" onclick="closeEditModal()">Cancel</button>
-          <button type="submit" class="modal-btn-save">💾 Save Record</button>
-        </div>
+      <div class="form-group">
+        <label class="form-label">Check-out</label>
+        <input type="time" name="check_out" id="input-out" class="form-control">
+      </div>
+      <div class="d-flex gap-2 mt-4">
+        <button type="submit" class="btn btn-primary flex-grow-1">Save Record</button>
+        <button type="button" onclick="closeModal()" class="btn btn-outline-light">Cancel</button>
+      </div>
+      <div class="d-flex justify-content-between mt-4 pt-3 border-top border-secondary">
+        <button type="submit" name="action" value="leave" class="btn btn-link p-0 text-warning text-decoration-none">Mark as Leave</button>
+        <button type="submit" name="action" value="delete" onclick="return confirm('Full delete this record?')" class="btn btn-link p-0 text-danger text-decoration-none">Delete Entry</button>
       </div>
     </form>
   </div>
 </div>
+<div class="roster-header">
+  <div>
+    <h1 class="month-title">{{ current|date:"F Y" }}</h1>
+    <div class="stats-strip">
+      <div class="stat-item">
+        <span class="stat-label">Total Logged</span>
+        <span class="stat-value">{{ monthly_summary.total_hours_display }}</span>
+      </div>
+      <div class="stat-item">
+        <span class="stat-label">Target</span>
+        <span class="stat-value" style="color: var(--text-dim)">{{ monthly_summary.target_hours_display }}</span>
+      </div>
+      <div class="stat-item">
+        <span class="stat-label">Balance</span>
+        <span class="stat-value" id="balance-value">
+          {{ monthly_summary.extra_hours_display }}
+        </span>
+      </div>
+    </div>
+  </div>
+  
+  <div style="display: flex; gap: 12px; align-items: center;">
+    <a href="?year={{ prev_year }}&month={{ prev_month }}" class="btn-nav-round" title="Previous Month">
+      <i class="pi pi-chevron-left"></i>
+    </a>
+    <a href="?year={{ next_year }}&month={{ next_month }}" class="btn-nav-round" title="Next Month">
+      <i class="pi pi-chevron-right"></i>
+    </a>
+    <a href="{% url 'month_excel_export' %}?year={{ current.year }}&month={{ current.month }}" class="btn btn-primary d-flex align-items-center gap-2">
+      <i class="pi pi-file-excel"></i> Export Report
+    </a>
+  </div>
+</div>
+
+<div class="glass-roster">
+  <!-- Weekday Headers -->
+  <div class="dow-header">Mon</div>
+  <div class="dow-header">Tue</div>
+  <div class="dow-header">Wed</div>
+  <div class="dow-header">Thu</div>
+  <div class="dow-header">Fri</div>
+  <div class="dow-header">Sat</div>
+  <div class="dow-header">Sun</div>
+
+  {% for week in weeks %}
+    {% for cell in week %}
+      <div class="day-card {% if not cell.is_current_month %}other-month{% endif %} {% if cell.date == today %}today{% endif %} {% if cell.is_holiday %}holiday{% endif %}"
+           data-date="{{ cell.date|date:'Y-m-d' }}"
+           data-pretty="{{ cell.date|date:'d M Y' }}"
+           data-in="{{ cell.record.check_in|default:'' }}"
+           data-out="{{ cell.record.check_out|default:'' }}"
+           data-is-leave="{% if cell.record.leave_type %}true{% endif %}">
+        
+        <div class="day-num">{{ cell.date.day }}</div>
+        
+        {% if cell.is_holiday %}
+          <div class="holiday-tag">{{ cell.holiday_name|default:"Holiday" }}</div>
+        {% elif cell.record.leave_type %}
+          <div class="holiday-tag" style="color: #5b8def;">LEAVE</div>
+        {% endif %}
+
+        {% if cell.record %}
+          <div class="day-content">
+            <div class="time-row">
+              <span>IN</span>
+              <span>{{ cell.record.check_in|default:"—" }}</span>
+            </div>
+            <div class="time-row">
+              <span>OUT</span>
+              <span>{{ cell.record.check_out|default:"—" }}</span>
+            </div>
+            <div class="hours-pill">
+              <div class="hours-bar" data-pct="{{ cell.record.hours|percentage:9 }}"></div>
+            </div>
+          </div>
+          <div class="total-tag">{{ cell.record.hours_display }}</div>
+        {% elif cell.is_current_month and not cell.is_holiday %}
+          <div class="day-content" style="opacity: 0.3; text-align: center; margin-top: 20px;">
+             <i class="pi pi-calendar-minus" style="font-size: 1.2rem;"></i>
+          </div>
+        {% endif %}
+      </div>
+    {% endfor %}
+  {% endfor %}
+</div>
 
 <script>
-  function openEditModal(btn) {
-    var form = document.getElementById('editForm');
-    var base = form.dataset.baseUrl;
-    form.action = base.replace('0000-00-00', btn.dataset.date);
-    document.getElementById('editModalTitle').textContent = '\u270e ' + btn.dataset.label;
-    document.getElementById('editCheckIn').value = btn.dataset.checkin;
-    document.getElementById('editCheckOut').value = btn.dataset.checkout;
-    document.getElementById('editModal').classList.add('open');
+  function closeModal() {
+    document.getElementById('action-modal').style.display = 'none';
   }
-  function closeEditModal() {
-    document.getElementById('editModal').classList.remove('open');
+
+  // Set balance color from JS to avoid template syntax errors in style tags
+  const balanceVal = parseFloat("{{ monthly_summary.extra_hours_in_hand|default:0 }}");
+  const balanceEl = document.getElementById('balance-value');
+  if (balanceEl) {
+    balanceEl.style.color = balanceVal >= 0 ? '#10b981' : '#ff4757';
   }
-  document.addEventListener('keydown', function (e) { if (e.key === 'Escape') closeEditModal(); });
-  // Time entry mask
-  document.addEventListener('input', function(e) {
-    if (e.target.classList.contains('time-entry-mask')) {
-      let val = e.target.value.replace(/\D/g, '');
-      if (val.length > 2) {
-        e.target.value = val.slice(0, 2) + ':' + val.slice(2, 4);
-      } else {
-        e.target.value = val;
-      }
-    }
+
+  // Initialize bars
+  document.querySelectorAll('.hours-bar').forEach(bar => {
+    bar.style.width = bar.dataset.pct + '%';
+  });
+
+  document.querySelectorAll('.day-card').forEach(card => {
+    card.addEventListener('click', () => {
+      const date = card.dataset.date;
+      const pretty = card.dataset.pretty;
+      
+      document.getElementById('modal-date').innerText = pretty;
+      
+      // Update form action
+      const editForm = document.getElementById('edit-form');
+      editForm.action = `/edit/${date}/`;
+      
+      document.getElementById('input-in').value = card.dataset.in || '';
+      document.getElementById('input-out').value = card.dataset.out || '';
+      
+      document.getElementById('action-modal').style.display = 'flex';
+    });
+
+    // Tilt effect
+    card.addEventListener('mousemove', (e) => {
+      const rect = card.getBoundingClientRect();
+      const xPercent = ((e.clientX - rect.left) / rect.width - 0.5) * 10;
+      const yPercent = ((e.clientY - rect.top) / rect.height - 0.5) * -10;
+      card.style.transform = `perspective(1000px) rotateY(${xPercent}deg) rotateX(${yPercent}deg) translateY(-4px) scale(1.02)`;
+    });
+    
+    card.addEventListener('mouseleave', () => card.style.transform = '');
+  });
+
+
+  window.addEventListener('click', (e) => {
+    if (e.target.id === 'action-modal') closeModal();
   });
 </script>
-
 {% endblock %}

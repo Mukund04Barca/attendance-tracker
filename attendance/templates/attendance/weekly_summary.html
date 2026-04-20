@@ -6,395 +6,267 @@
 
 {% block extra_head %}
 <style>
-  .week-hero {
-    background: var(--bg-glass);
-    backdrop-filter: blur(16px);
-    -webkit-backdrop-filter: blur(16px);
-    border: 1px solid var(--border);
-    border-radius: 20px;
-    padding: 24px 28px;
-    margin-bottom: 24px;
-    display: flex;
-    gap: 0;
-    flex-wrap: wrap;
+  :root {
+    --wa-accent: #1D9E75;
+    --wa-accent-soft: rgba(29, 158, 117, 0.15);
   }
 
-  .week-stat {
-    flex: 1;
-    min-width: 120px;
-    padding: 0 24px;
-    border-right: 1px solid rgba(255, 255, 255, 0.07);
+  .wa-hero {
+    background: linear-gradient(135deg, rgba(29, 158, 117, 0.12), rgba(17, 24, 39, 0.8));
+    border: 1px solid var(--surface-border);
+    border-radius: var(--border-radius-xl);
+    padding: 32px;
+    margin-bottom: 32px;
+    box-shadow: 0 20px 40px rgba(0, 0, 0, 0.3);
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(150px, 1fr));
+    gap: 24px;
+  }
+
+  .wa-stat-card {
     text-align: center;
+    border-right: 1px solid var(--surface-border);
+    padding: 10px;
   }
 
-  .week-stat:first-child {
-    padding-left: 0;
-  }
+  .wa-stat-card:last-child { border-right: none; }
 
-  .week-stat:last-child {
-    border-right: none;
-  }
-
-  .week-stat-val {
-    font-size: 2rem;
+  .wa-stat-val {
+    font-size: 2.5rem;
     font-weight: 800;
-    letter-spacing: -1px;
+    font-family: var(--display-font);
     line-height: 1;
-    margin-bottom: 6px;
+    margin-bottom: 8px;
+    color: var(--text);
   }
 
-  .week-stat-val.blue {
-    color: #60a5fa;
-  }
+  .wa-stat-val.blue { color: #3B82F6; }
+  .wa-stat-val.green { color: var(--wa-accent); }
+  .wa-stat-val.amber { color: #F59E0B; }
+  .wa-stat-val.purple { color: #A78BFA; }
 
-  .week-stat-val.green {
-    color: #34d399;
-  }
-
-  .week-stat-val.amber {
-    color: #fbbf24;
-  }
-
-  .week-stat-val.purple {
-    color: #a78bfa;
-  }
-
-  .week-stat-label {
-    font-size: 0.65rem;
+  .wa-stat-lbl {
+    font-size: 0.75rem;
     font-weight: 700;
     text-transform: uppercase;
-    letter-spacing: 1.2px;
-    color: #64748b;
+    letter-spacing: 0.1em;
+    color: var(--muted);
   }
 
-  /* Target progress bar at top */
-  .target-bar-wrap {
-    margin-bottom: 24px;
+  /* Progress */
+  .wa-progress-card {
+    background: var(--surface);
+    border: 1px solid var(--surface-border);
+    border-radius: var(--border-radius-lg);
+    padding: 24px;
+    margin-bottom: 32px;
   }
 
-  .target-bar-header {
+  .wa-progress-top {
     display: flex;
     justify-content: space-between;
-    font-size: 0.78rem;
-    color: #64748b;
-    margin-bottom: 6px;
-  }
-
-  .target-bar-track {
-    height: 8px;
-    background: rgba(255, 255, 255, 0.06);
-    border-radius: 6px;
-    overflow: hidden;
-  }
-
-  .target-bar-fill {
-    height: 100%;
-    border-radius: 6px;
-    background: linear-gradient(90deg, var(--accent), #34d399);
-    transition: width 1s cubic-bezier(0.25, 1, 0.5, 1);
-    box-shadow: 0 0 15px var(--accent-shadow);
-    width: var(--wpct, 0%);
-  }
-
-  /* Day cards row */
-  .day-cards {
-    display: grid;
-    grid-template-columns: repeat(auto-fill, minmax(130px, 1fr));
-    gap: 12px;
-    margin-bottom: 28px;
-  }
-
-  .day-card {
-    background: var(--bg-glass);
-    backdrop-filter: blur(8px);
-    -webkit-backdrop-filter: blur(8px);
-    border: 1px solid var(--border);
-    border-radius: 14px;
-    padding: 14px 12px;
-    text-align: center;
-    position: relative;
-    overflow: hidden;
-    transition: border-color 0.2s, transform 0.2s;
-  }
-
-  .day-card:hover {
-    border-color: rgba(96, 165, 250, 0.3);
-    transform: translateY(-2px);
-  }
-
-  .day-card.holiday {
-    border-color: rgba(251, 191, 36, 0.25);
-  }
-
-  .day-card.met {
-    border-color: rgba(52, 211, 153, 0.3);
-  }
-
-  .day-card.empty {
-    opacity: 0.45;
-  }
-
-  .day-card-glow {
-    position: absolute;
-    inset: 0;
-    background: transparent;
-    transition: background 0.3s;
-  }
-
-  .day-card.met .day-card-glow {
-    background: radial-gradient(circle at 50% 0%, rgba(52, 211, 153, 0.08), transparent 70%);
-  }
-
-  .day-card.holiday .day-card-glow {
-    background: radial-gradient(circle at 50% 0%, rgba(251, 191, 36, 0.08), transparent 70%);
-  }
-
-  .day-name {
-    font-size: 0.65rem;
+    font-size: 0.85rem;
     font-weight: 700;
-    text-transform: uppercase;
-    letter-spacing: 1px;
-    color: #64748b;
-    margin-bottom: 6px;
+    margin-bottom: 12px;
+    color: var(--text);
   }
 
-  .day-date {
-    font-size: 0.72rem;
-    color: #475569;
-    margin-bottom: 10px;
-  }
-
-  .day-hours {
-    font-size: 1.5rem;
-    font-weight: 800;
-    letter-spacing: -0.5px;
-    color: #60a5fa;
-    line-height: 1;
-    margin-bottom: 5px;
-  }
-
-  .day-hours.green {
-    color: #34d399;
-  }
-
-  .day-hours.amber {
-    color: #fbbf24;
-  }
-
-  .day-hours.muted {
-    color: #334155;
-    font-size: 1.1rem;
-  }
-
-  .day-times {
-    font-size: 0.65rem;
-    color: #475569;
-    line-height: 1.6;
-  }
-
-  .day-badge {
-    font-size: 0.58rem;
-    font-weight: 700;
-    padding: 2px 7px;
+  .wa-progress-track {
+    height: 10px;
+    background: rgba(255, 255, 255, 0.05);
     border-radius: 100px;
-    letter-spacing: 0.5px;
-    margin-top: 6px;
-    display: inline-block;
-  }
-
-  .day-badge.met {
-    background: rgba(52, 211, 153, 0.15);
-    color: #34d399;
-    border: 1px solid rgba(52, 211, 153, 0.3);
-  }
-
-  .day-badge.holiday {
-    background: rgba(251, 191, 36, 0.12);
-    color: #fbbf24;
-    border: 1px solid rgba(251, 191, 36, 0.25);
-  }
-
-  .day-badge.short {
-    background: rgba(239, 68, 68, 0.1);
-    color: #f87171;
-    border: 1px solid rgba(239, 68, 68, 0.2);
-  }
-
-  /* Detail table */
-  .detail-table-wrap {
-    background: var(--bg-glass);
-    backdrop-filter: blur(12px);
-    -webkit-backdrop-filter: blur(12px);
-    border: 1px solid var(--border);
-    border-radius: 16px;
     overflow: hidden;
   }
 
-  .detail-table-header {
-    padding: 16px 20px;
-    border-bottom: 1px solid rgba(255, 255, 255, 0.06);
-    font-size: 0.72rem;
-    font-weight: 700;
-    letter-spacing: 1.5px;
-    text-transform: uppercase;
-    color: #64748b;
+  .wa-progress-fill {
+    height: 100%;
+    background: linear-gradient(90deg, #3B82F6, var(--wa-accent));
+    box-shadow: 0 0 20px rgba(29, 158, 117, 0.3);
+    border-radius: 100px;
+    transition: width 0.8s cubic-bezier(0.34, 1.56, 0.64, 1);
   }
 
-  .detail-table tbody tr {
-    transition: background 0.15s;
+  /* Grid Area */
+  .wa-day-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(180px, 1fr));
+    gap: 16px;
+    margin-bottom: 40px;
   }
 
-  .detail-table tbody tr:hover {
-    background: rgba(96, 165, 250, 0.04);
-  }
-
-  .no-data-msg {
+  .wa-day-card {
+    background: var(--surface);
+    border: 1px solid var(--surface-border);
+    border-radius: var(--border-radius-lg);
+    padding: 20px;
     display: flex;
     flex-direction: column;
     align-items: center;
-    padding: 60px 20px;
-    color: #374151;
-    gap: 12px;
+    transition: all 0.2s;
+    position: relative;
+    overflow: hidden;
   }
 
-  .no-data-icon {
-    font-size: 3rem;
+  .wa-day-card:hover {
+    transform: translateY(-4px);
+    border-color: var(--wa-accent);
+    box-shadow: 0 10px 30px rgba(0, 0, 0, 0.2);
   }
 
-  .no-data-text {
-    font-size: 0.9rem;
+  .wa-day-card.today { border-color: rgba(59, 130, 246, 0.5); background: rgba(59, 130, 246, 0.03); }
+
+  .wa-day-name { font-size: 0.7rem; font-weight: 800; color: var(--muted); text-transform: uppercase; letter-spacing: 0.1em; }
+  .wa-day-date { font-size: 0.9rem; font-weight: 600; color: var(--text); margin-bottom: 16px; }
+  
+  .wa-day-hrs { font-size: 2rem; font-weight: 800; font-family: var(--display-font); color: var(--text); line-height: 1; }
+  .wa-day-hrs.green { color: var(--wa-accent); }
+  .wa-day-hrs.amber { color: #F59E0B; }
+  
+  .wa-day-sub { font-size: 0.75rem; color: var(--muted); margin-top: 8px; text-align: center; }
+
+  .wa-badge { font-size: 0.65rem; font-weight: 800; padding: 2px 8px; border-radius: 4px; text-transform: uppercase; margin-top: 12px; }
+  .wa-badge.met { background: var(--wa-accent); color: white; }
+  .wa-badge.short { background: rgba(239, 68, 68, 0.1); color: #F87171; border: 1px solid rgba(239, 68, 68, 0.2); }
+  .wa-badge.holiday { background: rgba(245, 158, 11, 0.1); color: #fbbf24; border: 1px solid rgba(245, 158, 11, 0.2); }
+
+  /* Table */
+  .wa-table-card {
+    background: var(--surface);
+    border: 1px solid var(--surface-border);
+    border-radius: var(--border-radius-xl);
+    overflow: hidden;
+  }
+
+  .wa-table-head { background: rgba(255, 255, 255, 0.02); padding: 16px 24px; font-weight: 800; font-size: 0.75rem; color: var(--muted); text-transform: uppercase; border-bottom: 1px solid var(--surface-border); }
+  
+  .wa-table { width: 100%; border-collapse: collapse; }
+  .wa-table th, .wa-table td { padding: 16px 24px; text-align: left; border-bottom: 1px solid var(--surface-border); font-size: 0.85rem; }
+  .wa-table th { color: var(--muted); font-weight: 700; text-transform: uppercase; font-size: 0.7rem; letter-spacing: 0.05em; }
+  .wa-table tbody tr:hover { background: rgba(255, 255, 255, 0.01); }
+
+  @media (max-width: 768px) {
+    .wa-hero { grid-template-columns: 1fr 1fr; }
+    .wa-stat-card { border: none !important; }
   }
 </style>
 {% endblock %}
 
 {% block content %}
-
-<div class="d-flex justify-content-between align-items-center mb-4 flex-wrap gap-2">
+<div class="d-flex justify-content-between align-items-center mb-4 flex-wrap gap-3">
   <div>
-    <div style="font-size:1.35rem;font-weight:800;margin-bottom:3px;">This Week's Overview</div>
-    <div style="font-size:0.78rem;color:#64748b;">{{ start_date|date:"d M Y" }} — {{ end_date|date:"d M Y" }}</div>
+    <h1 style="font-size:2rem; font-weight:800; margin:0; font-family:var(--display-font);">Weekly Executive Summary</h1>
+    <p style="color:var(--muted); margin:4px 0 0;">Analysis for the period: {{ start_date|date:"d M" }} — {{ end_date|date:"d M Y" }}</p>
   </div>
-  <a href="{% url 'month_excel_export' %}" class="btn btn-primary btn-sm">⬇ Export Excel</a>
+  <a href="{% url 'month_excel_export' %}" class="btn-commander btn-commander-primary" style="text-decoration:none; padding:10px 24px; font-size:0.85rem;">⬇ Export Analysis</a>
 </div>
 
 {% if summary.rows %}
 
-<!-- ── Hero stats ── -->
-<div class="week-hero">
-  <div class="week-stat">
-    <div class="week-stat-val blue">{{ summary.weekly_total }}</div>
-    <div class="week-stat-label">Total Hours</div>
+<!-- ── Analytics Multi-Stat ── -->
+<div class="wa-hero">
+  <div class="wa-stat-card">
+    <div class="wa-stat-val blue">{{ summary.weekly_total }}</div>
+    <div class="wa-stat-lbl">Accumulated Hours</div>
   </div>
-  <div class="week-stat">
-    <div class="week-stat-val amber">{{ summary.weekly_avg }}</div>
-    <div class="week-stat-label">Daily Average</div>
+  <div class="wa-stat-card">
+    <div class="wa-stat-val amber">{{ summary.weekly_avg }}</div>
+    <div class="wa-stat-lbl">Daily Efficiency</div>
   </div>
-  <div class="week-stat">
-    <div class="week-stat-val green">{{ weekly_target }}</div>
-    <div class="week-stat-label">Weekly Target</div>
+  <div class="wa-stat-card">
+    <div class="wa-stat-val green">{{ weekly_target }}</div>
+    <div class="wa-stat-lbl">Weekly Roadmap</div>
   </div>
-  <div class="week-stat">
+  <div class="wa-stat-card">
     {% if summary.weekly_total >= weekly_target %}
-    <div class="week-stat-val green">✓</div>
-    <div class="week-stat-label">Target Met</div>
+    <div class="wa-stat-val green">✓</div>
+    <div class="wa-stat-lbl">Milestone Met</div>
     {% else %}
-    <div class="week-stat-val purple">{{ weekly_target|floatformat:0 }}h left</div>
-    <div class="week-stat-label">Remaining</div>
+    <div class="wa-stat-val purple">{{ weekly_target|floatformat:0 }}h</div>
+    <div class="wa-stat-lbl">Shortfall to Target</div>
     {% endif %}
   </div>
 </div>
 
-<!-- ── Target progress bar ── -->
-<div class="target-bar-wrap">
-  <div class="target-bar-header">
-    <span>Weekly progress</span>
-    <span>{{ summary.weekly_total }}h / {{ weekly_target }}h</span>
+<!-- ── Progress ── -->
+<div class="wa-progress-card">
+  <div class="wa-progress-top">
+    <span>Cycle Progress</span>
+    <span>{{ summary.weekly_total }} / {{ weekly_target }}h</span>
   </div>
-  <div class="target-bar-track">
+  <div class="wa-progress-track">
     {% widthratio summary.weekly_total weekly_target 100 as wpct %}
-    <div class="target-bar-fill" style="--wpct: {% if wpct > 100 %}100{% else %}{{ wpct|default:0 }}{% endif %}%;"></div>
+    <div class="wa-progress-fill" style="width: {% if wpct > 100 %}100{% else %}{{ wpct|default:0 }}{% endif %}%;"></div>
   </div>
 </div>
 
-<!-- ── Day cards ── -->
-<div class="day-cards">
+<!-- ── Day Insight Grid ── -->
+<div class="wa-day-grid">
   {% for row in summary.rows %}
-  <div
-    class="day-card {% if row.is_holiday %}holiday{% elif row.total_with_allowance >= 9 %}met{% elif not row.check_in_time %}empty{% endif %}">
-    <div class="day-card-glow"></div>
-    <div class="day-name">{{ row.date|date:"D" }}</div>
-    <div class="day-date">{{ row.date|date:"d M" }}</div>
+  <div class="wa-day-card">
+    <div class="wa-day-name">{{ row.date|date:"D" }}</div>
+    <div class="wa-day-date">{{ row.date|date:"d M" }}</div>
+    
     {% if row.leave_type %}
-    <div class="day-hours" style="color:#ef4444;font-size:0.9rem;">LEAVE</div>
-    <div class="day-badge" style="background:rgba(239,68,68,0.1);color:#ef4444;border:1px solid rgba(239,68,68,0.2);">Leave Day</div>
+      <div class="wa-day-hrs" style="color:#EF4444; font-size:1.5rem;">LEAVE</div>
+      <div class="wa-badge short">Out of Office</div>
     {% elif row.is_holiday %}
-    <div class="day-hours amber">🏖</div>
-    <div class="day-badge holiday">Holiday</div>
+      <div class="wa-day-hrs amber">🏖</div>
+      <div class="wa-badge holiday">Comp. Holiday</div>
     {% elif row.date|date:"D" == "Sat" or row.date|date:"D" == "Sun" %}
-    <div class="day-hours muted" style="font-size:0.8rem;">OFF</div>
-    <div class="day-badge" style="color:#475569;border:1px solid rgba(71,85,105,0.2);">Weekend</div>
+      <div class="wa-day-hrs" style="color:var(--muted); font-size:1.25rem;">OFF</div>
+      <div class="wa-day-sub">Weekend Break</div>
     {% elif row.check_in_time %}
-    <div class="day-hours {% if row.total_with_allowance >= 9 %}green{% else %}blue{% endif %}">{{ row.total_with_allowance|floatformat:1 }}h</div>
-    <div class="day-times">
-      {{ row.check_in_time }}<br>{{ row.check_out_time }}
-    </div>
-    {% if row.total_with_allowance >= 9 %}
-    <div class="day-badge met">✓ Target</div>
+      <div class="wa-day-hrs {% if row.total_with_allowance >= 9 %}green{% else %}blue{% endif %}">{{ row.total_with_allowance|floatformat:1 }}h</div>
+      <div class="wa-day-sub">{{ row.check_in_time }} — {{ row.check_out_time }}</div>
+      {% if row.total_with_allowance >= 9 %}
+        <div class="wa-badge met">Target Met</div>
+      {% else %}
+        <div class="wa-badge short">Short Session</div>
+      {% endif %}
     {% else %}
-    <div class="day-badge short">Short</div>
-    {% endif %}
-    {% else %}
-    <div class="day-hours muted">—</div>
-    <div class="day-times" style="color:#1e293b;">No record</div>
+      <div class="wa-day-hrs" style="color:rgba(255,255,255,0.05);">—</div>
+      <div class="wa-day-sub">No activity logged</div>
     {% endif %}
   </div>
   {% endfor %}
 </div>
 
-<!-- ── Detail table ── -->
-<div class="detail-table-wrap">
-  <div class="detail-table-header">📄 Full Breakdown</div>
+<!-- ── Advanced Breakdown ── -->
+<div class="wa-table-card">
+  <div class="wa-table-head">Enterprise Transaction Log</div>
   <div class="table-responsive">
-    <table class="table table-dark align-middle mb-0 detail-table">
+    <table class="wa-table">
       <thead>
         <tr>
-          <th>Date</th>
-          <th>Day</th>
-          <th>Status</th>
-          <th>Check-in</th>
-          <th>Check-out</th>
-          <th>Hours</th>
-          <th>Allowance</th>
+          <th>Date Cycle</th>
+          <th>Session Status</th>
+          <th>Clock-in</th>
+          <th>Clock-out</th>
+          <th>Duration</th>
+          <th>Variance</th>
           <th>Total</th>
         </tr>
       </thead>
       <tbody>
         {% for row in summary.rows %}
         <tr>
-          <td>{{ row.date|date:"d M Y" }}</td>
-          <td style="color:#64748b;">{{ row.date|date:"D" }}</td>
           <td>
-            {% if row.leave_type %}
-            <span class="badge bg-danger" style="font-size:0.65rem;background:#ef4444 !important;">Leave</span>
-            {% elif row.is_holiday %}
-            <span class="badge bg-danger" style="font-size:0.65rem;">Holiday</span>
-            {% elif row.date|date:"D" == "Sat" or row.date|date:"D" == "Sun" %}
-            <span style="color:#64748b;font-size:0.75rem;">Weekend</span>
-            {% elif row.check_in_time %}
-            {% if row.total_with_allowance >= 9 %}
-            <span style="color:#34d399;font-size:0.75rem;font-weight:600;">✓ Met</span>
-            {% else %}
-            <span style="color:#f87171;font-size:0.75rem;">Short</span>
-            {% endif %}
-            {% else %}
-            <span style="color:#1e293b;font-size:0.75rem;">No record</span>
-            {% endif %}
+            <div style="font-weight:700; color:var(--text);">{{ row.date|date:"d M Y" }}</div>
+            <div style="font-size:0.75rem; color:var(--muted);">{{ row.date|date:"l" }}</div>
           </td>
-          <td><span style="color:#34d399;font-weight:600;">{{ row.check_in_time|default:"—" }}</span></td>
-          <td><span style="color:#60a5fa;font-weight:600;">{{ row.check_out_time|default:"—" }}</span></td>
-          <td>{{ row.hours|floatformat:2 }}</td>
-          <td style="color:#a78bfa;">{{ row.allowance_hours|floatformat:2 }}</td>
-          <td><strong>{{ row.total_with_allowance|floatformat:2 }}</strong></td>
+          <td>
+            {% if row.leave_type %}<span style="color:#EF4444; font-weight:700;">[ LEAVE ]</span>
+            {% elif row.is_holiday %}<span style="color:#F59E0B; font-weight:700;">[ HOLIDAY ]</span>
+            {% elif row.check_in_time %}
+              {% if row.total_with_allowance >= 9 %}<span style="color:var(--wa-accent); font-weight:700;">ACTIVE: MET</span>
+              {% else %}<span style="color:#F87171;">ACTIVE: SHORT</span>{% endif %}
+            {% else %}<span style="color:rgba(255,255,255,0.1);">DORMANT</span>{% endif %}
+          </td>
+          <td style="color:var(--wa-accent); font-weight:700;">{{ row.check_in_time|default:"—" }}</td>
+          <td style="color:#3B82F6; font-weight:700;">{{ row.check_out_time|default:"—" }}</td>
+          <td>{{ row.hours|floatformat:2 }}h</td>
+          <td style="color:#A78BFA; font-weight:700;">+{{ row.allowance_hours|floatformat:2 }}h</td>
+          <td><strong style="font-size:1.1rem; color:var(--text);">{{ row.total_with_allowance|floatformat:2 }}h</strong></td>
         </tr>
         {% endfor %}
       </tbody>
@@ -403,10 +275,11 @@
 </div>
 
 {% else %}
-<div class="no-data-msg">
-  <div class="no-data-icon">📭</div>
-  <div class="no-data-text">No attendance records found for this week.</div>
-  <a href="{% url 'checkin_checkout' %}" class="btn btn-primary btn-sm mt-2">→ Check In Now</a>
+<div style="text-align:center; padding:80px 40px; background:var(--surface); border-radius:var(--border-radius-xl); border:1px solid var(--surface-border);">
+  <div style="font-size:4rem; margin-bottom:24px;">📈</div>
+  <h2 style="font-family:var(--display-font); font-weight:800;">Analytics Engine Idle</h2>
+  <p style="color:var(--muted); max-width:400px; margin:16px auto 24px;">No data points available for the current weekly cycle. Start logging your sessions to activate the intelligence engine.</p>
+  <a href="{% url 'checkin_checkout' %}" class="btn-commander btn-commander-primary" style="text-decoration:none; display:inline-block;">Launch Dashboard</a>
 </div>
 {% endif %}
 

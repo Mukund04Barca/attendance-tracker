@@ -1,33 +1,31 @@
 {% extends "base.html" %}
 
-{% block title %}Privacy Policy | [WEBSITE NAME]{% endblock %}
+{% block title %}Privacy Policy | Attendance Tracker{% endblock %}
 {% block header_title %}Privacy Policy{% endblock %}
 
 {% block content %}
-<div class="card" style="max-width: 800px; margin: 0 auto;">
-  <div class="card-body" style="color: var(--text); line-height: 1.6;">
-    <h2 style="font-weight: 800; margin-bottom: 20px;">Privacy Policy</h2>
-    <p>Last updated: {% now "Y-m-d" %}</p>
+<div style="max-width: 900px; margin: 0 auto; padding-top: 20px;">
+  <div style="background: var(--surface); border: 1px solid var(--surface-border); border-radius: var(--border-radius-xl); padding: 50px; box-shadow: 0 30px 60px rgba(0,0,0,0.3);">
+    <h1 style="font-family: var(--display-font); font-weight: 800; font-size: 2.5rem; margin-bottom: 8px; color: var(--text);">Privacy Policy</h1>
+    <p style="color: var(--muted); font-size: 0.9rem; margin-bottom: 40px; border-bottom: 1px solid var(--surface-border); padding-bottom: 20px;">Last updated: {% now "F d, Y" %}</p>
 
-    <p>Welcome to <strong>[APP NAME]</strong>, operated by <strong>[WEBSITE NAME]</strong>. We are committed to protecting your personal information and your right to privacy.</p>
+    <div style="color: var(--text); line-height: 1.8; font-size: 1.05rem;">
+      <p>Your privacy is important to us. This policy outlines how your data is handled within the Attendance tracking system.</p>
 
-    <h4 style="margin-top: 30px;">1. Information We Collect</h4>
-    <p>We collect personal information that you provide to us when registering at the Services, expressing an interest in obtaining information about us or our products and services.</p>
+      <h3 style="margin-top: 40px; font-weight: 800; color: #1D9E75;">1. Strategic Data Collection</h3>
+      <p>We collect essential operational data (logs, check-in times) to facilitate the attendance reporting and timesheet automation features of this platform.</p>
 
-    <h4 style="margin-top: 30px;">2. How We Use Your Information</h4>
-    <p>We use the information we collect or receive to facilitate the account creation and logon process, to send administrative information to you, and for internal reporting purposes.</p>
+      <h3 style="margin-top: 40px; font-weight: 800; color: #1D9E75;">2. Utilization Framework</h3>
+      <p>Information is utilized strictly for enterprise resource management, providing you with analytics on your work-life balance and facilitating payroll-ready roster exports.</p>
 
-    <h4 style="margin-top: 30px;">3. Will Your Information Be Shared With Anyone?</h4>
-    <p>We only share information with your consent, to comply with laws, to provide you with services, to protect your rights, or to fulfill business obligations.</p>
+      <h3 style="margin-top: 40px; font-weight: 800; color: #1D9E75;">3. Security Protocols</h3>
+      <p>We employ high-grade security measures to protect your logs and account data against unauthorized access or disclosure.</p>
 
-    <h4 style="margin-top: 30px;">4. Contact Us</h4>
-    <p>If you have questions or comments about this notice, you may email us at <strong>[SUPPORT EMAIL]</strong> or by post to:</p>
-    <address style="margin-top: 10px; font-style: normal; color: var(--muted);">
-      [WEBSITE NAME]<br>
-      [ADDRESS LINE 1]<br>
-      [ADDRESS LINE 2]<br>
-      [COUNTRY]
-    </address>
+      <div style="margin-top: 60px; padding: 30px; background: rgba(255,255,255,0.02); border-radius: 12px; border: 1px dashed var(--surface-border);">
+        <h4 style="margin: 0 0 10px; font-weight: 800; font-size: 0.9rem; text-transform: uppercase; letter-spacing: 1px; color: var(--muted);">Direct Inquiry</h4>
+        <p style="margin: 0;">For privacy concerns, reach out to the compliance lead at <strong style="color: var(--text);">admin@attendance.tracker</strong></p>
+      </div>
+    </div>
   </div>
 </div>
 {% endblock %}

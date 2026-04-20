@@ -24,3 +24,18 @@ def to_list(value):
         return sorted(list(value))
     except Exception:
         return list(value)
+@register.filter
+def abs_val(value):
+    """Return the absolute value of a number."""
+    try:
+        return abs(float(value))
+    except (ValueError, TypeError):
+        return value
+
+@register.filter
+def percentage(value, arg):
+    """Calculate percentage: (value / arg) * 100."""
+    try:
+        return min(float(value) / float(arg) * 100, 100)
+    except (ValueError, TypeError, ZeroDivisionError):
+        return 0

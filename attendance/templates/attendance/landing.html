@@ -1,0 +1,1195 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>AttendanceTracker — Enterprise Attendance Management</title>
+  <style>
+    @import url('https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800;900&display=swap');
+
+    *, *::before, *::after {
+      margin: 0;
+      padding: 0;
+      box-sizing: border-box;
+    }
+
+    :root {
+      --bg: #0a0f1e;
+      --bg-light: #0e1528;
+      --accent: #5b8def;
+      --accent-glow: rgba(91, 141, 239, 0.4);
+      --purple: #7c5cbf;
+      --purple-glow: rgba(124, 92, 191, 0.3);
+      --text: #ffffff;
+      --text-dim: rgba(255, 255, 255, 0.5);
+      --text-mid: rgba(255, 255, 255, 0.7);
+      --glass-bg: rgba(255, 255, 255, 0.04);
+      --glass-border: rgba(255, 255, 255, 0.08);
+      --glass-border-hover: rgba(91, 141, 239, 0.3);
+    }
+
+    html {
+      scroll-behavior: smooth;
+    }
+
+    body {
+      font-family: 'Inter', -apple-system, sans-serif;
+      background: var(--bg);
+      color: var(--text);
+      overflow-x: hidden;
+      line-height: 1.6;
+    }
+
+    /* NAV */
+    nav {
+      position: fixed;
+      top: 0;
+      left: 0;
+      width: 100%;
+      z-index: 100;
+      padding: 20px 48px;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      backdrop-filter: blur(20px);
+      background: rgba(10, 15, 30, 0.6);
+      border-bottom: 1px solid rgba(255,255,255,0.04);
+      transition: all 0.3s;
+    }
+
+    nav .logo {
+      font-size: 18px;
+      font-weight: 800;
+      letter-spacing: -0.5px;
+      color: var(--text);
+      text-decoration: none;
+      display: flex;
+      align-items: center;
+      gap: 10px;
+    }
+
+    nav .logo .logo-icon {
+      width: 32px;
+      height: 32px;
+      border-radius: 8px;
+      background: linear-gradient(135deg, var(--accent), var(--purple));
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-size: 14px;
+      font-weight: 900;
+    }
+
+    nav .nav-links {
+      display: flex;
+      align-items: center;
+      gap: 36px;
+      list-style: none;
+    }
+
+    nav .nav-links a {
+      color: var(--text-mid);
+      text-decoration: none;
+      font-size: 14px;
+      font-weight: 500;
+      letter-spacing: 0.2px;
+      transition: color 0.3s;
+    }
+
+    nav .nav-links a:hover {
+      color: var(--text);
+    }
+
+    nav .nav-cta {
+      padding: 9px 22px;
+      background: var(--accent);
+      color: #fff !important;
+      border-radius: 8px;
+      font-weight: 600;
+      font-size: 13px;
+      transition: all 0.3s;
+      box-shadow: 0 0 20px var(--accent-glow);
+    }
+
+    nav .nav-cta:hover {
+      background: #6d9af0;
+      transform: translateY(-1px);
+    }
+
+    /* HERO */
+    .hero {
+      position: relative;
+      min-height: 100vh;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      flex-direction: column;
+      padding: 120px 48px 80px;
+      overflow: hidden;
+    }
+
+    #particles-canvas {
+      position: absolute;
+      top: 0;
+      left: 0;
+      width: 100%;
+      height: 100%;
+      z-index: 0;
+    }
+
+    .hero-glow {
+      position: absolute;
+      width: 600px;
+      height: 600px;
+      border-radius: 50%;
+      filter: blur(120px);
+      opacity: 0.15;
+      pointer-events: none;
+      z-index: 0;
+    }
+
+    .hero-glow.blue {
+      background: var(--accent);
+      top: 10%;
+      left: 20%;
+    }
+
+    .hero-glow.purple {
+      background: var(--purple);
+      bottom: 10%;
+      right: 15%;
+    }
+
+    .hero-content {
+      position: relative;
+      z-index: 2;
+      text-align: center;
+      max-width: 800px;
+    }
+
+    .hero-badge {
+      display: inline-flex;
+      align-items: center;
+      gap: 8px;
+      padding: 6px 16px;
+      background: rgba(91, 141, 239, 0.1);
+      border: 1px solid rgba(91, 141, 239, 0.2);
+      border-radius: 100px;
+      font-size: 13px;
+      font-weight: 500;
+      color: var(--accent);
+      margin-bottom: 32px;
+      animation: fadeInUp 0.8s ease;
+    }
+
+    .hero-badge .dot {
+      width: 6px;
+      height: 6px;
+      border-radius: 50%;
+      background: var(--accent);
+      animation: pulse 2s infinite;
+    }
+
+    @keyframes pulse {
+      0%, 100% { opacity: 1; }
+      50% { opacity: 0.3; }
+    }
+
+    .hero h1 {
+      font-size: clamp(40px, 6vw, 72px);
+      font-weight: 900;
+      line-height: 1.05;
+      letter-spacing: -2px;
+      margin-bottom: 24px;
+      animation: fadeInUp 0.8s ease 0.1s both;
+    }
+
+    .hero h1 .highlight {
+      background: linear-gradient(135deg, var(--accent) 0%, #a78bfa 50%, var(--accent) 100%);
+      background-size: 200% auto;
+      -webkit-background-clip: text;
+      -webkit-text-fill-color: transparent;
+      background-clip: text;
+      animation: shimmer 4s ease infinite;
+    }
+
+    @keyframes shimmer {
+      0% { background-position: 0% center; }
+      100% { background-position: 200% center; }
+    }
+
+    .hero p {
+      font-size: 18px;
+      color: var(--text-dim);
+      max-width: 520px;
+      margin: 0 auto 40px;
+      line-height: 1.7;
+      font-weight: 400;
+      animation: fadeInUp 0.8s ease 0.2s both;
+    }
+
+    .hero-buttons {
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      gap: 16px;
+      animation: fadeInUp 0.8s ease 0.3s both;
+    }
+
+    .btn-primary {
+      padding: 14px 32px;
+      background: var(--accent);
+      color: #fff;
+      border: none;
+      border-radius: 10px;
+      font-size: 15px;
+      font-weight: 600;
+      cursor: pointer;
+      transition: all 0.3s;
+      box-shadow: 0 0 30px var(--accent-glow), 0 4px 20px rgba(0,0,0,0.3);
+      text-decoration: none;
+      font-family: 'Inter', sans-serif;
+    }
+
+    .btn-primary:hover {
+      transform: translateY(-2px);
+      box-shadow: 0 0 50px var(--accent-glow), 0 8px 30px rgba(0,0,0,0.4);
+    }
+
+    .btn-secondary {
+      padding: 14px 32px;
+      background: var(--glass-bg);
+      color: var(--text-mid);
+      border: 1px solid var(--glass-border);
+      border-radius: 10px;
+      font-size: 15px;
+      font-weight: 500;
+      cursor: pointer;
+      transition: all 0.3s;
+      text-decoration: none;
+      font-family: 'Inter', sans-serif;
+    }
+
+    .btn-secondary:hover {
+      border-color: var(--glass-border-hover);
+      color: var(--text);
+      background: rgba(255,255,255,0.06);
+    }
+
+    @keyframes fadeInUp {
+      from {
+        opacity: 0;
+        transform: translateY(30px);
+      }
+      to {
+        opacity: 1;
+        transform: translateY(0);
+      }
+    }
+
+    /* 3D DASHBOARD CARD */
+    .hero-3d-scene {
+      position: relative;
+      z-index: 2;
+      margin-top: 60px;
+      perspective: 1200px;
+      animation: fadeInUp 1s ease 0.5s both;
+    }
+
+    .dashboard-card {
+      width: min(700px, 85vw);
+      background: rgba(14, 21, 40, 0.85);
+      border: 1px solid rgba(91, 141, 239, 0.15);
+      border-radius: 16px;
+      padding: 0;
+      transform: rotateX(8deg) rotateY(-3deg);
+      transition: transform 0.6s cubic-bezier(0.23, 1, 0.32, 1);
+      box-shadow:
+        0 0 60px rgba(91, 141, 239, 0.08),
+        0 30px 60px rgba(0, 0, 0, 0.5),
+        inset 0 1px 0 rgba(255,255,255,0.05);
+      backdrop-filter: blur(20px);
+      overflow: hidden;
+    }
+
+    .dashboard-card:hover {
+      transform: rotateX(2deg) rotateY(0deg) translateY(-8px);
+    }
+
+    .dash-topbar {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      padding: 14px 20px;
+      border-bottom: 1px solid rgba(255,255,255,0.05);
+    }
+
+    .dash-dots {
+      display: flex;
+      gap: 7px;
+    }
+
+    .dash-dots span {
+      width: 10px;
+      height: 10px;
+      border-radius: 50%;
+    }
+
+    .dash-dots span:nth-child(1) { background: #ff5f57; }
+    .dash-dots span:nth-child(2) { background: #ffbd2e; }
+    .dash-dots span:nth-child(3) { background: #28c840; }
+
+    .dash-title {
+      font-size: 12px;
+      color: var(--text-dim);
+      font-weight: 500;
+    }
+
+    .dash-topbar-right {
+      display: flex;
+      gap: 8px;
+    }
+
+    .dash-topbar-right span {
+      width: 24px;
+      height: 24px;
+      border-radius: 6px;
+      background: rgba(255,255,255,0.05);
+    }
+
+    .dash-body {
+      padding: 20px;
+      display: grid;
+      grid-template-columns: 1fr 1fr 1fr;
+      gap: 12px;
+    }
+
+    .dash-stat {
+      background: rgba(255,255,255,0.03);
+      border: 1px solid rgba(255,255,255,0.05);
+      border-radius: 10px;
+      padding: 14px;
+    }
+
+    .dash-stat-label {
+      font-size: 11px;
+      color: var(--text-dim);
+      font-weight: 500;
+      margin-bottom: 6px;
+    }
+
+    .dash-stat-value {
+      font-size: 22px;
+      font-weight: 800;
+      letter-spacing: -0.5px;
+    }
+
+    .dash-stat-value.accent { color: var(--accent); }
+    .dash-stat-value.green { color: #28c840; }
+    .dash-stat-value.purple { color: #a78bfa; }
+
+    .dash-stat-change {
+      font-size: 11px;
+      color: #28c840;
+      margin-top: 4px;
+    }
+
+    .dash-table-area {
+      grid-column: 1 / -1;
+      background: rgba(255,255,255,0.02);
+      border: 1px solid rgba(255,255,255,0.05);
+      border-radius: 10px;
+      overflow: hidden;
+    }
+
+    .dash-table-header {
+      display: grid;
+      grid-template-columns: 2fr 1fr 1fr 1fr;
+      padding: 10px 16px;
+      border-bottom: 1px solid rgba(255,255,255,0.05);
+      font-size: 11px;
+      color: var(--text-dim);
+      font-weight: 600;
+      text-transform: uppercase;
+      letter-spacing: 0.5px;
+    }
+
+    .dash-table-row {
+      display: grid;
+      grid-template-columns: 2fr 1fr 1fr 1fr;
+      padding: 10px 16px;
+      font-size: 13px;
+      color: var(--text-mid);
+      border-bottom: 1px solid rgba(255,255,255,0.02);
+      transition: background 0.2s;
+    }
+
+    .dash-table-row:last-child {
+      border-bottom: none;
+    }
+
+    .dash-table-row .name {
+      color: var(--text);
+      font-weight: 500;
+    }
+
+    .status-present {
+      color: #28c840;
+      font-weight: 500;
+    }
+
+    .status-absent {
+      color: #ff5f57;
+      font-weight: 500;
+    }
+
+    .status-late {
+      color: #ffbd2e;
+      font-weight: 500;
+    }
+
+    /* GRID FLOOR */
+    .grid-floor {
+      position: absolute;
+      bottom: -40px;
+      left: 50%;
+      transform: translateX(-50%) perspective(600px) rotateX(60deg);
+      width: 900px;
+      height: 300px;
+      background:
+        linear-gradient(rgba(91, 141, 239, 0.07) 1px, transparent 1px),
+        linear-gradient(90deg, rgba(91, 141, 239, 0.07) 1px, transparent 1px);
+      background-size: 40px 40px;
+      mask-image: radial-gradient(ellipse at center, rgba(0,0,0,0.6) 20%, transparent 70%);
+      -webkit-mask-image: radial-gradient(ellipse at center, rgba(0,0,0,0.6) 20%, transparent 70%);
+      z-index: 0;
+    }
+
+    .grid-floor-glow {
+      position: absolute;
+      bottom: -20px;
+      left: 50%;
+      transform: translateX(-50%);
+      width: 400px;
+      height: 120px;
+      background: radial-gradient(ellipse, rgba(91, 141, 239, 0.15), transparent);
+      filter: blur(30px);
+      z-index: 0;
+    }
+
+    /* FEATURES */
+    .features {
+      padding: 120px 48px;
+      position: relative;
+    }
+
+    .section-label {
+      display: inline-flex;
+      align-items: center;
+      gap: 8px;
+      font-size: 13px;
+      font-weight: 600;
+      color: var(--accent);
+      text-transform: uppercase;
+      letter-spacing: 1.5px;
+      margin-bottom: 16px;
+    }
+
+    .section-label::before {
+      content: '';
+      width: 20px;
+      height: 1px;
+      background: var(--accent);
+    }
+
+    .section-title {
+      font-size: clamp(32px, 4vw, 48px);
+      font-weight: 800;
+      letter-spacing: -1.5px;
+      margin-bottom: 16px;
+      line-height: 1.1;
+    }
+
+    .section-desc {
+      font-size: 16px;
+      color: var(--text-dim);
+      max-width: 500px;
+      line-height: 1.7;
+      margin-bottom: 64px;
+    }
+
+    .features-grid {
+      display: grid;
+      grid-template-columns: repeat(3, 1fr);
+      gap: 20px;
+      max-width: 1100px;
+      margin: 0 auto;
+    }
+
+    .feature-card {
+      background: var(--glass-bg);
+      border: 1px solid var(--glass-border);
+      border-radius: 16px;
+      padding: 36px 28px;
+      backdrop-filter: blur(20px);
+      transition: all 0.4s cubic-bezier(0.23, 1, 0.32, 1);
+      position: relative;
+      overflow: hidden;
+    }
+
+    .feature-card::before {
+      content: '';
+      position: absolute;
+      top: 0;
+      left: 0;
+      right: 0;
+      height: 1px;
+      background: linear-gradient(90deg, transparent, rgba(91, 141, 239, 0.3), transparent);
+      opacity: 0;
+      transition: opacity 0.4s;
+    }
+
+    .feature-card:hover::before {
+      opacity: 1;
+    }
+
+    .feature-card:hover {
+      border-color: var(--glass-border-hover);
+      transform: translateY(-6px);
+      box-shadow: 0 20px 60px rgba(0, 0, 0, 0.3), 0 0 40px rgba(91, 141, 239, 0.05);
+    }
+
+    .feature-icon {
+      width: 52px;
+      height: 52px;
+      border-radius: 14px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      margin-bottom: 22px;
+      font-size: 22px;
+      position: relative;
+    }
+
+    .feature-icon.blue {
+      background: rgba(91, 141, 239, 0.12);
+      color: var(--accent);
+      box-shadow: 0 0 30px rgba(91, 141, 239, 0.1);
+    }
+
+    .feature-icon.purple {
+      background: rgba(124, 92, 191, 0.12);
+      color: #a78bfa;
+      box-shadow: 0 0 30px rgba(124, 92, 191, 0.1);
+    }
+
+    .feature-icon.green {
+      background: rgba(40, 200, 64, 0.12);
+      color: #28c840;
+      box-shadow: 0 0 30px rgba(40, 200, 64, 0.1);
+    }
+
+    .feature-card h3 {
+      font-size: 17px;
+      font-weight: 700;
+      margin-bottom: 10px;
+      letter-spacing: -0.3px;
+    }
+
+    .feature-card p {
+      font-size: 14px;
+      color: var(--text-dim);
+      line-height: 1.7;
+    }
+
+    /* HOW IT WORKS */
+    .how-it-works {
+      padding: 120px 48px;
+      position: relative;
+      overflow: hidden;
+    }
+
+    .how-it-works .section-header {
+      text-align: center;
+      margin-bottom: 80px;
+    }
+
+    .how-it-works .section-desc {
+      margin: 0 auto;
+    }
+
+    .steps-container {
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      gap: 0;
+      max-width: 1000px;
+      margin: 0 auto;
+      position: relative;
+    }
+
+    .step-item {
+      flex: 1;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      text-align: center;
+      position: relative;
+      z-index: 2;
+    }
+
+    .step-number-ring {
+      width: 80px;
+      height: 80px;
+      border-radius: 50%;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      margin-bottom: 24px;
+      position: relative;
+      background: var(--bg);
+      border: 2px solid rgba(91, 141, 239, 0.3);
+      box-shadow: 0 0 40px rgba(91, 141, 239, 0.1);
+      transition: all 0.4s;
+    }
+
+    .step-item:hover .step-number-ring {
+      border-color: var(--accent);
+      box-shadow: 0 0 60px rgba(91, 141, 239, 0.2);
+    }
+
+    .step-number-inner {
+      width: 56px;
+      height: 56px;
+      border-radius: 50%;
+      background: linear-gradient(135deg, rgba(91, 141, 239, 0.15), rgba(124, 92, 191, 0.1));
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-size: 22px;
+    }
+
+    .step-connector {
+      flex: 0 0 auto;
+      width: 100px;
+      height: 2px;
+      position: relative;
+      margin-bottom: 60px;
+      z-index: 1;
+    }
+
+    .step-connector-line {
+      width: 100%;
+      height: 100%;
+      background: linear-gradient(90deg, rgba(91, 141, 239, 0.4), rgba(124, 92, 191, 0.4));
+      border-radius: 2px;
+      position: relative;
+    }
+
+    .step-connector-glow {
+      position: absolute;
+      top: -4px;
+      left: 0;
+      width: 30px;
+      height: 10px;
+      background: var(--accent);
+      border-radius: 50%;
+      filter: blur(6px);
+      opacity: 0.6;
+      animation: flowDot 3s ease-in-out infinite;
+    }
+
+    @keyframes flowDot {
+      0% { left: 0%; opacity: 0; }
+      20% { opacity: 0.8; }
+      80% { opacity: 0.8; }
+      100% { left: 100%; opacity: 0; }
+    }
+
+    .step-item h3 {
+      font-size: 18px;
+      font-weight: 700;
+      margin-bottom: 8px;
+      letter-spacing: -0.3px;
+    }
+
+    .step-item p {
+      font-size: 14px;
+      color: var(--text-dim);
+      max-width: 200px;
+      line-height: 1.6;
+    }
+
+    /* FOOTER */
+    footer {
+      padding: 60px 48px;
+      border-top: 1px solid rgba(255,255,255,0.05);
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+    }
+
+    footer .footer-brand {
+      font-size: 15px;
+      font-weight: 700;
+      display: flex;
+      align-items: center;
+      gap: 10px;
+    }
+
+    footer .footer-brand .logo-icon {
+      width: 28px;
+      height: 28px;
+      border-radius: 7px;
+      background: linear-gradient(135deg, var(--accent), var(--purple));
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-size: 12px;
+      font-weight: 900;
+    }
+
+    footer .footer-copy {
+      font-size: 13px;
+      color: var(--text-dim);
+    }
+
+    footer .footer-links {
+      display: flex;
+      gap: 28px;
+      list-style: none;
+    }
+
+    footer .footer-links a {
+      font-size: 13px;
+      color: var(--text-dim);
+      text-decoration: none;
+      transition: color 0.3s;
+    }
+
+    footer .footer-links a:hover {
+      color: var(--text);
+    }
+
+    /* SCROLL ANIMATIONS */
+    .reveal {
+      opacity: 0;
+      transform: translateY(40px);
+      transition: all 0.8s cubic-bezier(0.23, 1, 0.32, 1);
+    }
+
+    .reveal.visible {
+      opacity: 1;
+      transform: translateY(0);
+    }
+
+    /* RESPONSIVE */
+    @media (max-width: 900px) {
+      nav { padding: 16px 24px; }
+      nav .nav-links { gap: 20px; }
+      .hero { padding: 100px 24px 60px; }
+      .features { padding: 80px 24px; }
+      .features-grid {
+        grid-template-columns: 1fr;
+        max-width: 420px;
+      }
+      .how-it-works { padding: 80px 24px; }
+      .steps-container {
+        flex-direction: column;
+        gap: 0;
+      }
+      .step-connector {
+        width: 2px;
+        height: 60px;
+        margin-bottom: 0;
+      }
+      .step-connector-line {
+        width: 100%;
+        height: 100%;
+        background: linear-gradient(180deg, rgba(91, 141, 239, 0.4), rgba(124, 92, 191, 0.4));
+      }
+      .step-connector-glow {
+        animation: flowDotVert 3s ease-in-out infinite;
+      }
+      @keyframes flowDotVert {
+        0% { top: 0%; left: -4px; opacity: 0; }
+        20% { opacity: 0.8; }
+        80% { opacity: 0.8; }
+        100% { top: 100%; left: -4px; opacity: 0; }
+      }
+      .dash-body {
+        grid-template-columns: 1fr;
+      }
+      .dash-table-header, .dash-table-row {
+        grid-template-columns: 2fr 1fr 1fr 1fr;
+        font-size: 11px;
+      }
+      footer {
+        flex-direction: column;
+        gap: 20px;
+        text-align: center;
+        padding: 40px 24px;
+      }
+    }
+
+    @media (max-width: 600px) {
+      .hero h1 { letter-spacing: -1px; }
+      .hero-buttons { flex-direction: column; width: 100%; }
+      .btn-primary, .btn-secondary { width: 100%; text-align: center; }
+      nav .nav-links .hide-mobile { display: none; }
+      .dash-table-header, .dash-table-row {
+        grid-template-columns: 1.5fr 1fr 1fr;
+      }
+      .dash-table-header span:last-child,
+      .dash-table-row span:last-child {
+        display: none;
+      }
+    }
+  </style>
+</head>
+<body>
+
+  <!-- NAV -->
+  <nav>
+    <a href="/" class="logo">
+      <span class="logo-icon">A</span>
+      AttendanceTracker
+    </a>
+    <ul class="nav-links">
+      <li><a href="#features" class="hide-mobile">Features</a></li>
+      <li><a href="#how-it-works" class="hide-mobile">How It Works</a></li>
+      <li><a href="{% url 'checkin_checkout' %}" class="nav-cta">Get Started</a></li>
+    </ul>
+  </nav>
+
+  <!-- HERO -->
+  <section class="hero">
+    <canvas id="particles-canvas"></canvas>
+    <div class="hero-glow blue"></div>
+    <div class="hero-glow purple"></div>
+
+    <div class="hero-content">
+      <div class="hero-badge">
+        <span class="dot"></span>
+        Now available for enterprise teams
+      </div>
+      <h1>Attendance Tracked.<br><span class="highlight">Teams Connected.</span></h1>
+      <p>A powerful web-based attendance and index management system built for modern organizations. Real-time insights, effortless tracking.</p>
+      <div class="hero-buttons">
+        <a href="{% url 'checkin_checkout' %}" class="btn-primary">Get Started Free →</a>
+        <a href="#how-it-works" class="btn-secondary">See How It Works</a>
+      </div>
+    </div>
+
+    <div class="hero-3d-scene">
+      <div class="grid-floor"></div>
+      <div class="grid-floor-glow"></div>
+      <div class="dashboard-card" id="dashCard">
+        <div class="dash-topbar">
+          <div class="dash-dots">
+            <span></span><span></span><span></span>
+          </div>
+          <span class="dash-title">AttendanceTracker — Dashboard</span>
+          <div class="dash-topbar-right">
+            <span></span><span></span>
+          </div>
+        </div>
+        <div class="dash-body">
+          <div class="dash-stat">
+            <div class="dash-stat-label">Total Employees</div>
+            <div class="dash-stat-value accent">1,248</div>
+            <div class="dash-stat-change">↑ 12 this week</div>
+          </div>
+          <div class="dash-stat">
+            <div class="dash-stat-label">Present Today</div>
+            <div class="dash-stat-value green">1,186</div>
+            <div class="dash-stat-change">↑ 95.0% rate</div>
+          </div>
+          <div class="dash-stat">
+            <div class="dash-stat-label">Departments</div>
+            <div class="dash-stat-value purple">24</div>
+            <div class="dash-stat-change">All synced</div>
+          </div>
+          <div class="dash-table-area">
+            <div class="dash-table-header">
+              <span>Employee</span>
+              <span>Department</span>
+              <span>Status</span>
+              <span>Check-in</span>
+            </div>
+            <div class="dash-table-row">
+              <span class="name">Sarah Mitchell</span>
+              <span>Engineering</span>
+              <span class="status-present">Present</span>
+              <span>08:47 AM</span>
+            </div>
+            <div class="dash-table-row">
+              <span class="name">James Cooper</span>
+              <span>Design</span>
+              <span class="status-present">Present</span>
+              <span>08:52 AM</span>
+            </div>
+            <div class="dash-table-row">
+              <span class="name">Maria Santos</span>
+              <span>Marketing</span>
+              <span class="status-late">Late</span>
+              <span>09:31 AM</span>
+            </div>
+            <div class="dash-table-row">
+              <span class="name">David Chen</span>
+              <span>Product</span>
+              <span class="status-absent">Absent</span>
+              <span>—</span>
+            </div>
+            <div class="dash-table-row">
+              <span class="name">Emily Park</span>
+              <span>Engineering</span>
+              <span class="status-present">Present</span>
+              <span>08:39 AM</span>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- FEATURES -->
+  <section class="features" id="features">
+    <div class="section-label reveal">Features</div>
+    <h2 class="section-title reveal">Everything you need<br>to manage attendance</h2>
+    <p class="section-desc reveal">Built with security and simplicity in mind. Powerful tools that integrate seamlessly with your workflow.</p>
+
+    <div class="features-grid">
+      <div class="feature-card reveal">
+        <div class="feature-icon blue">
+          <svg width="24" height="24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="11" width="18" height="11" rx="2" ry="2"/><path d="M7 11V7a5 5 0 0110 0v4"/></svg>
+        </div>
+        <h3>Secure Login</h3>
+        <p>Enterprise-grade authentication with SSO support, MFA, and encrypted session management.</p>
+      </div>
+      <div class="feature-card reveal">
+        <div class="feature-icon green">
+          <svg width="24" height="24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M18 20V10"/><path d="M12 20V4"/><path d="M6 20v-6"/></svg>
+        </div>
+        <h3>Attendance Reports</h3>
+        <p>Real-time analytics and exportable reports. Track patterns, trends, and compliance metrics effortlessly.</p>
+      </div>
+      <div class="feature-card reveal">
+        <div class="feature-icon purple">
+          <svg width="24" height="24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M20 21v-2a4 4 0 00-4-4H8a4 4 0 00-4 4v2"/><circle cx="12" cy="7" r="4"/></svg>
+        </div>
+        <h3>Role-Based Access</h3>
+        <p>Granular permissions for admins, managers, and employees. Control visibility at every level.</p>
+      </div>
+      <div class="feature-card reveal">
+        <div class="feature-icon purple">
+          <svg width="24" height="24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="3" width="7" height="7"/><rect x="14" y="3" width="7" height="7"/><rect x="14" y="14" width="7" height="7"/><rect x="3" y="14" width="7" height="7"/></svg>
+        </div>
+        <h3>Team Dashboard</h3>
+        <p>Bird's-eye view of your entire organization. Filter by department, role, or custom groups in real time.</p>
+      </div>
+      <div class="feature-card reveal">
+        <div class="feature-icon blue">
+          <svg width="24" height="24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M14 2H6a2 2 0 00-2 2v16a2 2 0 002 2h12a2 2 0 002-2V8z"/><polyline points="14 2 14 8 20 8"/><line x1="16" y1="13" x2="8" y2="13"/><line x1="16" y1="17" x2="8" y2="17"/></svg>
+        </div>
+        <h3>Export & Download</h3>
+        <p>One-click export to CSV, PDF, or Excel. Schedule automated reports delivered to your inbox.</p>
+      </div>
+      <div class="feature-card reveal">
+        <div class="feature-icon green">
+          <svg width="24" height="24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="10"/><polyline points="12 6 12 12 16 14"/></svg>
+        </div>
+        <h3>Real-Time Tracking</h3>
+        <p>Live attendance updates as employees check in. Instant notifications for anomalies and absences.</p>
+      </div>
+    </div>
+  </section>
+
+  <!-- HOW IT WORKS -->
+  <section class="how-it-works" id="how-it-works">
+    <div class="section-header">
+      <div class="section-label reveal">Process</div>
+      <h2 class="section-title reveal">Simple. Fast. Reliable.</h2>
+      <p class="section-desc reveal">Three steps to complete visibility over your team's attendance and productivity.</p>
+    </div>
+
+    <div class="steps-container">
+      <div class="step-item reveal">
+        <div class="step-number-ring">
+          <div class="step-number-inner">
+            <svg width="26" height="26" fill="none" stroke="#5b8def" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M15 3h4a2 2 0 012 2v14a2 2 0 01-2 2h-4"/><polyline points="10 17 15 12 10 7"/><line x1="15" y1="12" x2="3" y2="12"/></svg>
+          </div>
+        </div>
+        <h3>Login</h3>
+        <p>Securely sign in with your organization credentials or SSO.</p>
+      </div>
+
+      <div class="step-connector">
+        <div class="step-connector-line"></div>
+        <div class="step-connector-glow"></div>
+      </div>
+
+      <div class="step-item reveal">
+        <div class="step-number-ring">
+          <div class="step-number-inner">
+            <svg width="26" height="26" fill="none" stroke="#a78bfa" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="3" width="7" height="7"/><rect x="14" y="3" width="7" height="7"/><rect x="14" y="14" width="7" height="7"/><rect x="3" y="14" width="7" height="7"/></svg>
+          </div>
+        </div>
+        <h3>View Dashboard</h3>
+        <p>Monitor real-time attendance data and team metrics at a glance.</p>
+      </div>
+
+      <div class="step-connector">
+        <div class="step-connector-line"></div>
+        <div class="step-connector-glow" style="animation-delay: 1s;"></div>
+      </div>
+
+      <div class="step-item reveal">
+        <div class="step-number-ring">
+          <div class="step-number-inner">
+            <svg width="26" height="26" fill="none" stroke="#28c840" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M21 15v4a2 2 0 01-2 2H5a2 2 0 01-2-2v-4"/><polyline points="7 10 12 15 17 10"/><line x1="12" y1="15" x2="12" y2="3"/></svg>
+          </div>
+        </div>
+        <h3>Download Reports</h3>
+        <p>Export detailed attendance reports in any format, anytime.</p>
+      </div>
+    </div>
+  </section>
+
+  <!-- FOOTER -->
+  <footer>
+    <div class="footer-brand">
+      <span class="logo-icon">A</span>
+      AttendanceTracker
+    </div>
+    <span class="footer-copy">© 2026 AttendanceTracker. All rights reserved.</span>
+    <ul class="footer-links">
+      <li><a href="javascript:void(0)">Privacy</a></li>
+      <li><a href="javascript:void(0)">Terms</a></li>
+      <li><a href="javascript:void(0)">Contact</a></li>
+    </ul>
+  </footer>
+
+  <script>
+    // PARTICLE SYSTEM
+    const canvas = document.getElementById('particles-canvas');
+    const ctx = canvas.getContext('2d');
+    let particles = [];
+    let mouse = { x: -9999, y: -9999 };
+    let w, h;
+
+    function resize() {
+      w = canvas.width = canvas.offsetWidth;
+      h = canvas.height = canvas.offsetHeight;
+    }
+
+    window.addEventListener('resize', resize);
+    resize();
+
+    class Particle {
+      constructor() {
+        this.reset();
+      }
+      reset() {
+        this.x = Math.random() * w;
+        this.y = Math.random() * h;
+        this.size = Math.random() * 1.5 + 0.5;
+        this.speedX = (Math.random() - 0.5) * 0.3;
+        this.speedY = (Math.random() - 0.5) * 0.3;
+        this.opacity = Math.random() * 0.4 + 0.1;
+      }
+      update() {
+        this.x += this.speedX;
+        this.y += this.speedY;
+        if (this.x < 0 || this.x > w) this.speedX *= -1;
+        if (this.y < 0 || this.y > h) this.speedY *= -1;
+      }
+      draw() {
+        ctx.beginPath();
+        ctx.arc(this.x, this.y, this.size, 0, Math.PI * 2);
+        ctx.fillStyle = `rgba(91, 141, 239, ${this.opacity})`;
+        ctx.fill();
+      }
+    }
+
+    const particleCount = Math.min(80, Math.floor(w * h / 12000));
+    for (let i = 0; i < particleCount; i++) {
+      particles.push(new Particle());
+    }
+
+    function connectParticles() {
+      for (let i = 0; i < particles.length; i++) {
+        for (let j = i + 1; j < particles.length; j++) {
+          const dx = particles[i].x - particles[j].x;
+          const dy = particles[i].y - particles[j].y;
+          const dist = Math.sqrt(dx * dx + dy * dy);
+          if (dist < 150) {
+            const opacity = (1 - dist / 150) * 0.08;
+            ctx.beginPath();
+            ctx.moveTo(particles[i].x, particles[i].y);
+            ctx.lineTo(particles[j].x, particles[j].y);
+            ctx.strokeStyle = `rgba(91, 141, 239, ${opacity})`;
+            ctx.lineWidth = 0.5;
+            ctx.stroke();
+          }
+        }
+      }
+    }
+
+    function animateParticles() {
+      ctx.clearRect(0, 0, w, h);
+      particles.forEach(p => {
+        p.update();
+        p.draw();
+      });
+      connectParticles();
+      requestAnimationFrame(animateParticles);
+    }
+
+    animateParticles();
+
+    // DASHBOARD CARD PARALLAX
+    const dashCard = document.getElementById('dashCard');
+    const heroSection = document.querySelector('.hero');
+
+    heroSection.addEventListener('mousemove', (e) => {
+      const rect = heroSection.getBoundingClientRect();
+      const x = (e.clientX - rect.left) / rect.width - 0.5;
+      const y = (e.clientY - rect.top) / rect.height - 0.5;
+      const rotateY = x * 8;
+      const rotateX = -y * 6 + 6;
+      dashCard.style.transform = `rotateX(${rotateX}deg) rotateY(${rotateY}deg)`;
+    });
+
+    heroSection.addEventListener('mouseleave', () => {
+      dashCard.style.transform = 'rotateX(8deg) rotateY(-3deg)';
+    });
+
+    // SCROLL REVEAL
+    const reveals = document.querySelectorAll('.reveal');
+    const observer = new IntersectionObserver((entries) => {
+      entries.forEach((entry, index) => {
+        if (entry.isIntersecting) {
+          setTimeout(() => {
+            entry.target.classList.add('visible');
+          }, index * 80);
+          observer.unobserve(entry.target);
+        }
+      });
+    }, { threshold: 0.15, rootMargin: '0px 0px -40px 0px' });
+
+    reveals.forEach(el => observer.observe(el));
+
+    // SMOOTH SCROLL
+    document.querySelectorAll('a[href^="#"]').forEach(a => {
+      a.addEventListener('click', (e) => {
+        const target = document.querySelector(a.getAttribute('href'));
+        if (target) {
+          e.preventDefault();
+          target.scrollIntoView({ behavior: 'smooth', block: 'start' });
+        }
+      });
+    });
+  </script>
+</body>
+</html>
