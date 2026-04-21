@@ -34,7 +34,7 @@ WORKDAY_END = datetime.strptime(
 ).time()
 DEFAULT_ALLOWANCE = float(ATT_CFG.get("default_allowance_hours", 0.0))
 CONFIG_HOLIDAYS = set(ATT_CFG.get("holidays", []))
-WEEKLY_TARGET = float(ATT_CFG.get("weekly_hours_target", 40))
+WEEKLY_TARGET = float(ATT_CFG.get("weekly_hours_target", 45))
 DAILY_TARGET_HOURS = float(ATT_CFG.get("daily_hours_target", 9))
 SATURDAY_TARGET_HOURS = float(ATT_CFG.get("saturday_hours_target", 6))
 

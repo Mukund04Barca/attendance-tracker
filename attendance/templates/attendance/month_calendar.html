@@ -309,33 +309,94 @@
     font-size: 1rem;
   }
   .form-control:focus { border-color: var(--cyan); box-shadow: 0 0 15px rgba(0,245,255,0.1); outline: none; }
+
+  .day-card.weekend {
+    background: rgba(255, 255, 255, 0.02);
+    border-color: rgba(255, 255, 255, 0.04);
+  }
+  .day-card.weekend .day-num { opacity: 0.6; }
+
+  @keyframes pulse-today {
+    0%, 100% { box-shadow: 0 0 0 0 rgba(0, 245, 255, 0.4); }
+    50% { box-shadow: 0 0 0 4px rgba(0, 245, 255, 0); }
+  }
+  .day-card.today {
+    animation: pulse-today 2s infinite;
+    border-color: var(--today-border);
+  }
+
+  @media (max-width: 768px) {
+    .glass-roster { grid-template-columns: repeat(7, minmax(40px, 1fr)); gap: 4px; padding: 8px; }
+    .day-card { min-height: 80px; padding: 8px; }
+    .day-num { font-size: 1rem !important; }
+    .time-row { font-size: 0.6rem; flex-direction: column; gap: 2px; }
+    .roster-header { flex-direction: column; align-items: flex-start; }
+    .stats-strip { width: 100%; justify-content: space-between; }
+  }
 </style>
 {% endblock %}
 
 {% block content %}
-<div id="action-modal">
-  <div class="modal-content">
-    <div class="modal-header mb-4">
-      <h3 id="modal-date">Date</h3>
-      <p>Quick Attendance Action</p>
+<div id="action-modal" style="display: none; position: fixed; top: 0; left: 0; width: 100%; height: 100%; 
+     background: rgba(0, 2, 10, 0.8); backdrop-filter: blur(8px); z-index: 10000; 
+     align-items: center; justify-content: center;">
+  
+  <div class="modal-content" style="
+       background: #0a0f1e; border: 1px solid rgba(0, 245, 255, 0.2); border-radius: 20px; 
+       padding: 24px; width: 100%; max-width: 420px;
+       transform: translateY(100%); transition: transform 0.3s cubic-bezier(0.4, 0, 0.2, 1);">
+    
+    <div style="width: 40px; height: 4px; background: rgba(255,255,255,0.2); border-radius: 2px; margin: 0 auto 20px;"></div>
+    
+    <div class="modal-header" style="margin-bottom: 20px; text-align: center;">
+      <h3 id="modal-date" style="margin: 0; font-size: 1.25rem; color: #fff;">Date</h3>
+      <p style="margin: 4px 0 0 0; font-size: 0.8rem; color: var(--text-dim);">Quick Attendance Action</p>
     </div>
-    <form id="edit-form" method="POST">
+    
+    <div class="quick-presets" style="display: flex; gap: 8px; margin-bottom: 20px; overflow-x: auto; padding-bottom: 4px;">
+      <button type="button" onclick="fillPreset('09:00', '18:00')" class="preset-btn" 
+              style="white-space: nowrap; padding: 6px 12px; background: rgba(56, 221, 248, 0.1); border: 1px solid rgba(56, 221, 248, 0.3); color: var(--cyan); border-radius: 6px; font-size: 0.75rem; cursor: pointer;">
+        Standard Day (9-6)
+      </button>
+      <button type="button" onclick="fillPreset('09:00', '13:00')" class="preset-btn" 
+              style="white-space: nowrap; padding: 6px 12px; background: rgba(245, 158, 11, 0.1); border: 1px solid rgba(245, 158, 11, 0.3); color: #f59e0b; border-radius: 6px; font-size: 0.75rem; cursor: pointer;">
+        Half Day (9-1)
+      </button>
+      <button type="button" onclick="fillPreset('', '')" class="preset-btn" 
+              style="white-space: nowrap; padding: 6px 12px; background: rgba(255,255,255,0.05); border: 1px solid rgba(255,255,255,0.1); color: var(--text-dim); border-radius: 6px; font-size: 0.75rem; cursor: pointer;">
+        Clear
+      </button>
+    </div>
+
+    <form id="edit-form" method="POST" style="display: flex; flex-direction: column; gap: 16px;">
       {% csrf_token %}
-      <div class="form-group">
-        <label class="form-label">Check-in</label>
-        <input type="time" name="check_in" id="input-in" class="form-control">
+      <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 12px;">
+        <div class="form-group" style="margin: 0;">
+          <label class="form-label">Check-in</label>
+          <input type="time" name="check_in" id="input-in" class="form-control">
+        </div>
+        <div class="form-group" style="margin: 0;">
+          <label class="form-label">Check-out</label>
+          <input type="time" name="check_out" id="input-out" class="form-control">
+        </div>
       </div>
-      <div class="form-group">
-        <label class="form-label">Check-out</label>
-        <input type="time" name="check_out" id="input-out" class="form-control">
+
+      <div style="display: flex; gap: 8px; margin-top: 8px;">
+        <button type="submit" class="btn btn-primary" style="flex: 1; padding: 12px; background: var(--cyan); color: #000; border: none; border-radius: 8px; font-weight: 700; cursor: pointer;">
+          Save Record
+        </button>
+        <button type="button" onclick="closeModal()" class="btn btn-outline-light" style="padding: 12px 16px; background: transparent; border: 1px solid rgba(255,255,255,0.2); color: #fff; border-radius: 8px; cursor: pointer;">
+          Cancel
+        </button>
       </div>
-      <div class="d-flex gap-2 mt-4">
-        <button type="submit" class="btn btn-primary flex-grow-1">Save Record</button>
-        <button type="button" onclick="closeModal()" class="btn btn-outline-light">Cancel</button>
-      </div>
-      <div class="d-flex justify-content-between mt-4 pt-3 border-top border-secondary">
-        <button type="submit" name="action" value="leave" class="btn btn-link p-0 text-warning text-decoration-none">Mark as Leave</button>
-        <button type="submit" name="action" value="delete" onclick="return confirm('Full delete this record?')" class="btn btn-link p-0 text-danger text-decoration-none">Delete Entry</button>
+      
+      <div style="display: flex; justify-content: space-between; margin-top: 16px; padding-top: 16px; border-top: 1px solid rgba(255,255,255,0.1);">
+        <button type="submit" name="action" value="leave" class="btn btn-link" style="background: none; border: none; color: #f59e0b; font-size: 0.8rem; cursor: pointer; text-decoration: none;">
+          🏖️ Mark Leave
+        </button>
+        <button type="submit" name="action" value="delete" onclick="return confirm('Delete this record permanently?')" class="btn btn-link" style="background: none; border: none; color: #ef4444; font-size: 0.8rem; cursor: pointer; text-decoration: none;">
+          🗑️ Delete
+        </button>
       </div>
     </form>
   </div>
@@ -343,31 +404,71 @@
 <div class="roster-header">
   <div>
     <h1 class="month-title">{{ current|date:"F Y" }}</h1>
-    <div class="stats-strip">
-      <div class="stat-item">
-        <span class="stat-label">Total Logged</span>
-        <span class="stat-value">{{ monthly_summary.total_hours_display }}</span>
+    <!-- Month Progress Indicator -->
+    <div class="month-progress-container" style="margin-top: 12px; width: 220px; max-width: 100%;">
+      <div class="progress-track" style="height: 4px; background: rgba(255,255,255,0.1); border-radius: 2px; overflow: hidden;">
+        <div class="progress-fill" style="width: {{ monthly_summary.bank_progress_percent|default:50 }}%; 
+             height: 100%; 
+             background: linear-gradient(90deg, var(--cyan), var(--emerald)); 
+             transition: width 1s ease;">
+        </div>
       </div>
-      <div class="stat-item">
-        <span class="stat-label">Target</span>
-        <span class="stat-value" style="color: var(--text-dim)">{{ monthly_summary.target_hours_display }}</span>
+      <div style="display: flex; justify-content: space-between; font-size: 0.65rem; color: var(--text-dim); margin-top: 4px;">
+        <span>{{ monthly_summary.total_hours_display }} worked</span>
+        <span>{{ monthly_summary.target_hours_display }} tgt</span>
       </div>
-      <div class="stat-item">
-        <span class="stat-label">Balance</span>
-        <span class="stat-value" id="balance-value">
-          {{ monthly_summary.extra_hours_display }}
-        </span>
+    </div>
+    
+    <div class="stats-grid" style="display: flex; gap: 16px; margin-top: 16px; flex-wrap: wrap;">
+      <div class="metric-card" style="background: rgba(56, 221, 248, 0.08); border: 1px solid rgba(56, 221, 248, 0.2); padding: 12px 20px; border-radius: 12px;">
+        <div style="font-size: 0.65rem; text-transform: uppercase; letter-spacing: 1px; color: var(--text-dim);">Total Logged</div>
+        <div style="font-size: 1.4rem; font-weight: 800; color: var(--cyan);">{{ monthly_summary.total_hours_display }}</div>
+      </div>
+      
+      <div class="metric-card" style="background: rgba(255, 255, 255, 0.03); border: 1px solid rgba(255, 255, 255, 0.1); padding: 12px 20px; border-radius: 12px;">
+        <div style="font-size: 0.65rem; text-transform: uppercase; letter-spacing: 1px; color: var(--text-dim);">Target</div>
+        <div style="font-size: 1.4rem; font-weight: 700; color: var(--text-mid);">{{ monthly_summary.target_hours_display }}</div>
+      </div>
+      
+      <div class="metric-card" style="background: {% if monthly_summary.extra_hours_in_hand >= 0 %}rgba(52, 211, 153, 0.08){% else %}rgba(255, 71, 87, 0.08){% endif %}; 
+           border: 1px solid {% if monthly_summary.extra_hours_in_hand >= 0 %}rgba(52, 211, 153, 0.3){% else %}rgba(255, 71, 87, 0.3){% endif %}; 
+           padding: 12px 20px; border-radius: 12px;">
+        <div style="font-size: 0.65rem; text-transform: uppercase; letter-spacing: 1px; color: var(--text-dim);">Balance</div>
+        <div style="font-size: 1.4rem; font-weight: 800; color: {% if monthly_summary.extra_hours_in_hand >= 0 %}var(--emerald){% else %}#ff4757{% endif %};">
+          {% if monthly_summary.extra_hours_in_hand >= 0 %}+{% endif %}{{ monthly_summary.extra_hours_display }}
+        </div>
       </div>
     </div>
   </div>
   
   <div class="roster-actions">
-    <a href="?year={{ prev_year }}&month={{ prev_month }}" class="btn-nav-round" title="Previous Month" aria-label="Previous month">
-      &larr;
-    </a>
-    <a href="?year={{ next_year }}&month={{ next_month }}" class="btn-nav-round" title="Next Month" aria-label="Next month">
-      &rarr;
-    </a>
+    <a href="?year={{ prev_year }}&month={{ prev_month }}" class="btn-nav-round" aria-label="Previous month">&larr;</a>
+    
+    <div class="date-picker-group" style="display: flex; gap: 8px;">
+      <select id="month-select" class="form-control" style="width: auto; padding: 8px;">
+        <option value="1" {% if current.month == 1 %}selected{% endif %}>Jan</option>
+        <option value="2" {% if current.month == 2 %}selected{% endif %}>Feb</option>
+        <option value="3" {% if current.month == 3 %}selected{% endif %}>Mar</option>
+        <option value="4" {% if current.month == 4 %}selected{% endif %}>Apr</option>
+        <option value="5" {% if current.month == 5 %}selected{% endif %}>May</option>
+        <option value="6" {% if current.month == 6 %}selected{% endif %}>Jun</option>
+        <option value="7" {% if current.month == 7 %}selected{% endif %}>Jul</option>
+        <option value="8" {% if current.month == 8 %}selected{% endif %}>Aug</option>
+        <option value="9" {% if current.month == 9 %}selected{% endif %}>Sep</option>
+        <option value="10" {% if current.month == 10 %}selected{% endif %}>Oct</option>
+        <option value="11" {% if current.month == 11 %}selected{% endif %}>Nov</option>
+        <option value="12" {% if current.month == 12 %}selected{% endif %}>Dec</option>
+      </select>
+      <select id="year-select" class="form-control" style="width: auto; padding: 8px;">
+        <option value="{{ current.year|add:'-1' }}">{{ current.year|add:"-1" }}</option>
+        <option value="{{ current.year }}" selected>{{ current.year }}</option>
+        <option value="{{ current.year|add:'1' }}">{{ current.year|add:"1" }}</option>
+      </select>
+    </div>
+    
+    <a href="{% url 'month_calendar' %}" class="btn-nav-round btn-today" title="Go to Today" style="font-size:1.2rem;">&#8982;</a>
+    <a href="?year={{ next_year }}&month={{ next_month }}" class="btn-nav-round" aria-label="Next month">&rarr;</a>
+    
     <a href="{% url 'month_excel_export' %}?year={{ current.year }}&month={{ current.month }}" class="btn btn-primary export-report-btn d-flex align-items-center gap-2">
       Export Excel
     </a>
@@ -381,19 +482,29 @@
   <div class="dow-header">Wed</div>
   <div class="dow-header">Thu</div>
   <div class="dow-header">Fri</div>
-  <div class="dow-header">Sat</div>
-  <div class="dow-header">Sun</div>
+  <div class="dow-header" style="color: rgba(255, 165, 0, 0.6);">Sat</div>
+  <div class="dow-header" style="color: rgba(255, 71, 87, 0.6);">Sun</div>
 
   {% for week in weeks %}
     {% for cell in week %}
-      <div class="day-card {% if not cell.is_current_month %}other-month{% endif %} {% if cell.date == today %}today{% endif %} {% if cell.is_holiday %}holiday{% endif %}"
+      <div class="day-card 
+           {% if not cell.is_current_month %}other-month{% endif %} 
+           {% if cell.date == today %}today{% endif %} 
+           {% if cell.is_holiday %}holiday{% endif %}
+           {% if cell.date.weekday >= 5 %}weekend{% endif %}"
            data-date="{{ cell.date|date:'Y-m-d' }}"
            data-pretty="{{ cell.date|date:'d M Y' }}"
            data-in="{{ cell.record.check_in|default:'' }}"
            data-out="{{ cell.record.check_out|default:'' }}"
-           data-is-leave="{% if cell.record.leave_type %}true{% endif %}">
+           data-is-leave="{% if cell.record.leave_type %}true{% endif %}"
+           tabindex="0" role="button" aria-label="Edit attendance for {{ cell.date|date:'d M Y' }}">
         
-        <div class="day-num">{{ cell.date.day }}</div>
+        <div class="day-header" style="display: flex; justify-content: space-between; align-items: flex-start; margin-bottom: 8px;">
+          <span class="day-num" style="{% if cell.date.weekday == 6 %}color: #ff6b6b;{% endif %}">{{ cell.date.day }}</span>
+          {% if cell.date == today %}
+            <span class="today-badge" style="font-size: 0.5rem; background: var(--cyan); color: #000; padding: 2px 6px; border-radius: 4px; font-weight: 800;">TODAY</span>
+          {% endif %}
+        </div>
         
         {% if cell.is_holiday %}
           <div class="holiday-tag">{{ cell.holiday_name|default:"Holiday" }}</div>
@@ -403,21 +514,31 @@
 
         {% if cell.record %}
           <div class="day-content">
-            <div class="time-row">
-              <span>IN</span>
-              <span>{{ cell.record.check_in|default:"—" }}</span>
+            <div class="time-row" style="margin-bottom: 4px;">
+              <span style="opacity: 0.6;">🡣</span>
+              <span style="font-weight: 600; color: var(--text-mid);">{{ cell.record.check_in|default:"—" }}</span>
             </div>
-            <div class="time-row">
-              <span>OUT</span>
-              <span>{{ cell.record.check_out|default:"—" }}</span>
+            <div class="time-row" style="margin-bottom: 4px;">
+              <span style="opacity: 0.6;">🡡</span>
+              <span style="font-weight: 600; color: var(--text-mid);">{{ cell.record.check_out|default:"—" }}</span>
             </div>
-            <div class="hours-pill">
-              <div class="hours-bar" data-pct="{{ cell.record.hours|percentage:9 }}"></div>
+            
+            <div class="hours-pill" style="height: 3px; background: rgba(255,255,255,0.05); border-radius: 1.5px; overflow: hidden;">
+              <div class="hours-bar" data-pct="{{ cell.record.hours|percentage:9 }}" style="height: 100%; background: {% if cell.record.hours >= 9 %}var(--emerald){% elif cell.record.hours >= 7 %}#f59e0b{% else %}#ef4444{% endif %}; box-shadow: 0 0 8px {% if cell.record.hours >= 9 %}rgba(52,211,153,0.4){% elif cell.record.hours >= 7 %}rgba(245,158,11,0.4){% else %}rgba(239,68,68,0.4){% endif %};"></div>
+            </div>
+            
+            <div style="display: flex; justify-content: space-between; align-items: center; margin-top: 6px;">
+              <span style="font-size: 0.6rem; color: var(--text-dim);">{{ cell.record.hours|floatformat:1 }}h</span>
+              {% if cell.record.hours >= 9 %}
+                <span style="color: var(--emerald); font-size: 0.7rem;">✓</span>
+              {% endif %}
             </div>
           </div>
-          <div class="total-tag">{{ cell.record.hours_display }}</div>
         {% elif cell.is_current_month and not cell.is_holiday %}
-          <div class="empty-day">+</div>
+          <div class="empty-day" style="margin-top: auto; display: flex; flex-direction: column; align-items: center; gap: 4px; opacity: 0.4;">
+            <span style="font-size: 1.5rem; font-weight: 300;">+</span>
+            <span style="font-size: 0.6rem; text-transform: uppercase; letter-spacing: 1px;">Add Entry</span>
+          </div>
         {% endif %}
       </div>
     {% endfor %}
@@ -425,18 +546,41 @@
 </div>
 
 <script>
+  function fillPreset(inTime, outTime) {
+    document.getElementById('input-in').value = inTime;
+    document.getElementById('input-out').value = outTime;
+    document.querySelectorAll('.preset-btn').forEach(btn => btn.style.opacity = '0.6');
+    if(event && event.target) {
+      event.target.style.opacity = '1';
+      event.target.style.background = 'rgba(56, 221, 248, 0.2)';
+    }
+  }
+
   function closeModal() {
-    document.getElementById('action-modal').style.display = 'none';
+    const modal = document.getElementById('action-modal');
+    const content = modal.querySelector('.modal-content');
+    content.style.transform = 'translateY(100%)';
+    setTimeout(() => { modal.style.display = 'none'; }, 300);
   }
 
-  // Set balance color from JS to avoid template syntax errors in style tags
-  const balanceVal = parseFloat("{{ monthly_summary.extra_hours_in_hand|default:0 }}");
-  const balanceEl = document.getElementById('balance-value');
-  if (balanceEl) {
-    balanceEl.style.color = balanceVal >= 0 ? '#10b981' : '#ff4757';
-  }
+  // Keyboard and Jump navigation
+  document.getElementById('month-select')?.addEventListener('change', (e) => {
+    window.location.href = `?year={{ current.year }}&month=${e.target.value}`;
+  });
+  document.getElementById('year-select')?.addEventListener('change', (e) => {
+    window.location.href = `?year=${e.target.value}&month={{ current.month }}`;
+  });
 
-  // Initialize bars
+  document.addEventListener('keydown', (e) => {
+    if (e.target.tagName === 'INPUT' || e.target.tagName === 'SELECT') return;
+    const urlParams = new URLSearchParams(window.location.search);
+    let year = parseInt(urlParams.get('year')) || {{ current.year }};
+    let month = parseInt(urlParams.get('month')) || {{ current.month }};
+    if (e.key === 'ArrowLeft') { month--; if (month < 1) { month = 12; year--; } window.location.href = `?year=${year}&month=${month}`; }
+    else if (e.key === 'ArrowRight') { month++; if (month > 12) { month = 1; year++; } window.location.href = `?year=${year}&month=${month}`; }
+    else if (e.key === 't' || e.key === 'T') { window.location.href = '{% url "month_calendar" %}'; }
+  });
+
   document.querySelectorAll('.hours-bar').forEach(bar => {
     bar.style.width = bar.dataset.pct + '%';
   });
@@ -445,30 +589,30 @@
     card.addEventListener('click', () => {
       const date = card.dataset.date;
       const pretty = card.dataset.pretty;
-      
       document.getElementById('modal-date').innerText = pretty;
-      
-      // Update form action
       const editForm = document.getElementById('edit-form');
       editForm.action = `/edit/${date}/`;
-      
       document.getElementById('input-in').value = card.dataset.in || '';
       document.getElementById('input-out').value = card.dataset.out || '';
       
-      document.getElementById('action-modal').style.display = 'flex';
+      const modal = document.getElementById('action-modal');
+      const content = modal.querySelector('.modal-content');
+      modal.style.display = 'flex';
+      setTimeout(() => { content.style.transform = 'translateY(0)'; }, 10);
     });
 
-    // Tilt effect
+    card.addEventListener('keypress', (e) => {
+      if (e.key === 'Enter') card.click();
+    });
+
     card.addEventListener('mousemove', (e) => {
       const rect = card.getBoundingClientRect();
       const xPercent = ((e.clientX - rect.left) / rect.width - 0.5) * 10;
       const yPercent = ((e.clientY - rect.top) / rect.height - 0.5) * -10;
       card.style.transform = `perspective(1000px) rotateY(${xPercent}deg) rotateX(${yPercent}deg) translateY(-4px) scale(1.02)`;
     });
-    
     card.addEventListener('mouseleave', () => card.style.transform = '');
   });
-
 
   window.addEventListener('click', (e) => {
     if (e.target.id === 'action-modal') closeModal();

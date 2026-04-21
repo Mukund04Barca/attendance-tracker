@@ -318,24 +318,6 @@
     border-color: var(--accent);
     background: rgba(59, 130, 246, 0.12);
   }
-
-  @media (max-width: 600px) {
-    .ts-scroll { display: none; }
-    .mobile-day-view {
-      display: block !important;
-      padding: 16px;
-    }
-    .mobile-day-card {
-      background: rgba(255,255,255,0.05);
-      border: 1px solid var(--border-color);
-      border-radius: 12px;
-      padding: 16px;
-      margin-bottom: 12px;
-    }
-  }
-  @media (min-width: 601px) {
-    .mobile-day-view { display: none !important; }
-  }
 </style>
 {% endblock %}
 
@@ -379,7 +361,6 @@
           <!-- Populated by JS -->
         </table>
       </div>
-      <div class="mobile-day-view" id="mobileView"></div>
     </div>
 
     <div class="row-actions">
@@ -515,8 +496,7 @@ function renderSummary() {
     <div class="ts-card"><div class="ts-card-label">Total Present</div><div class="ts-card-val accent">${present}</div></div>
     <div class="ts-card"><div class="ts-card-label">Leaves / Offs</div><div class="ts-card-val" style="color:#EF4444">${leaves}</div></div>
     <div class="ts-card"><div class="ts-card-label">Target ESA</div><div class="ts-card-val" style="color:#3B82F6">${expectedESA}h</div></div>
-    <div class="ts-card"><div class="ts-card-label">Logged Time</div><div class="ts-card-val accent">${totalESA.toFixed(1)}h</div></div>
-    <div class="ts-card"><div class="ts-card-label">Allocation Gap</div><div class="ts-card-val" style="color:${Math.abs(totalESA - actTotal) < 0.5 ? '#10B981' : '#EF4444'}">${(actTotal - totalESA).toFixed(1)}h</div></div>
+    <div class="ts-card"><div class="ts-card-label">Logged Time</div><div class="ts-card-val accent">${actTotal.toFixed(1)}h</div></div>
   `;
 }
 
@@ -624,29 +604,12 @@ function renderTable() {
     const dk = String(d);
     const daySum = activities.reduce((s, a) => s + (parseFloat(a.hours[dk]) || 0), 0);
     const bg = (isWeekend(d, currentYear, currentMonth) || isHoliday(d)) ? 'weekend-col' : '';
-    const isHol = isHoliday(d);
-    const targetH = isSaturday(d, currentYear, currentMonth) ? 6 : (isHol ? 0 : 9);
-    const variance = daySum - targetH;
+    let targetH = isSaturday(d, currentYear, currentMonth) ? 6 : 9;
     let color = 'transparent';
-    let icon = '';
-
     if (daySum > 0) {
-      if (Math.abs(variance) <= 0.05) {
-        color = '#10B981'; // Green - exact match
-        icon = '✓';
-      } else if (variance > 0) {
-        color = '#F59E0B'; // Amber - over
-        icon = '+';
-      } else {
-        color = '#EF4444'; // Red - under
-        icon = '−';
-      }
+      color = Math.abs(daySum - targetH) > 0.05 ? '#EF4444' : '#10B981'; // Red if wrong, Green if adds up to 9
     }
-
-    html += `<td class="${bg}" style="font-weight:800; color:${color}; position:relative;">
-      ${daySum > 0 ? daySum.toFixed(1) + '<span style="font-size:0.6em; margin-left:2px;">'+icon+'</span>' : '0'}
-      ${targetH > 0 && daySum > 0 ? `<span style="position:absolute; bottom:2px; right:4px; font-size:0.55rem; color:rgba(255,255,255,0.3);">T:${targetH}</span>` : ''}
-    </td>`;
+    html += `<td class="${bg}" style="font-weight:800; color:${color}">${daySum > 0 ? daySum.toFixed(1) : '0'}</td>`;
   });
   const grandTotal = activities.reduce((s, a) => s + Object.values(a.hours).reduce((x, v) => x + (parseFloat(v) || 0), 0), 0);
   html += `<td class="total-col" style="color:var(--accent)">${grandTotal.toFixed(1)}</td></tr>`;
@@ -707,123 +670,8 @@ function addNewActivity(type = 'Development') {
 
 function submitTimesheet() {
   document.getElementById('activities_data').value = JSON.stringify(activities);
-  localStorage.removeItem(STORAGE_KEY);
   document.getElementById('tsForm').submit();
 }
-
-// Mobile Card View Render
-function renderMobileView() {
-  const container = document.getElementById('mobileView');
-  if (!container || window.innerWidth > 600) return;
-  
-  let html = '';
-  visibleDays.forEach(d => {
-    const dk = String(d);
-    const isHol = isHoliday(d);
-    const dayName = DAYS_WKD[new Date(currentYear, currentMonth, d).getDay()];
-    
-    html += `
-      <div class="mobile-day-card">
-        <div style="display:flex; justify-content:space-between; margin-bottom:12px;">
-          <span style="font-weight:800; color:white">${d} ${dayName}</span>
-          ${isHol ? '<span style="color:#60A5FA; font-size:0.7rem;">HOLIDAY</span>' : ''}
-        </div>
-        <div style="display:flex; flex-direction:column; gap:8px;">
-          ${activities.map((act, idx) => `
-            <div style="display:flex; align-items:center; gap:8px; font-size:0.85rem;">
-              <span style="flex:1; color:#94A3B8;">${esc(act.sub)}</span>
-              <input type="number" step="0.5" value="${escAttr(act.hours[dk]||'')}" 
-                     style="width:70px; background:rgba(0,0,0,0.3); border:1px solid var(--border-color); 
-                     color:white; padding:8px; border-radius:6px; text-align:center;"
-                     onchange="updateHour(${idx}, ${d}, this.value)">
-            </div>
-          `).join('')}
-        </div>
-      </div>
-    `;
-  });
-  container.innerHTML = html;
-}
-
-window.addEventListener('resize', renderMobileView);
-
-// Bulk Fill Feature
-let lastFocusedValue = '';
-document.addEventListener('focusin', (e) => {
-  if (e.target.classList.contains('input-hrs')) {
-    lastFocusedValue = e.target.value;
-  }
-});
-
-function addBulkFillButtons() {
-  document.querySelectorAll('.act-tr').forEach((row) => {
-    const firstInput = row.querySelector('.input-hrs');
-    if (firstInput && !firstInput.dataset.fillEnabled) {
-      firstInput.dataset.fillEnabled = 'true';
-      firstInput.title = 'Enter value, then press Ctrl+R to fill row';
-    }
-  });
-}
-
-document.addEventListener('keydown', (e) => {
-  if (e.ctrlKey && e.key === 'r') {
-    e.preventDefault();
-    const active = document.activeElement;
-    if (active?.classList.contains('input-hrs')) {
-      const val = active.value;
-      const row = active.closest('tr');
-      row.querySelectorAll('.input-hrs').forEach(input => {
-        input.value = val;
-        input.dispatchEvent(new Event('change'));
-      });
-    }
-  }
-});
-
-// Excel-Style Keyboard Navigation
-document.addEventListener('keydown', (e) => {
-  if (e.target.tagName !== 'INPUT' || !e.target.classList.contains('input-hrs')) return;
-  
-  const inputs = Array.from(document.querySelectorAll('.input-hrs'));
-  const idx = inputs.indexOf(e.target);
-  const cols = visibleDays.length;
-  
-  if (e.key === 'ArrowRight' && idx % cols < cols - 1) {
-    e.preventDefault(); inputs[idx + 1]?.focus(); inputs[idx + 1]?.select();
-  } else if (e.key === 'ArrowLeft' && idx % cols > 0) {
-    e.preventDefault(); inputs[idx - 1]?.focus(); inputs[idx - 1]?.select();
-  } else if (e.key === 'ArrowDown') {
-    e.preventDefault(); inputs[idx + cols]?.focus(); inputs[idx + cols]?.select();
-  } else if (e.key === 'ArrowUp') {
-    e.preventDefault(); inputs[idx - cols]?.focus(); inputs[idx - cols]?.select();
-  } else if (e.key === 'Tab' && !e.shiftKey) {
-    e.preventDefault(); inputs[idx + 1]?.focus(); inputs[idx + 1]?.select();
-  } else if (e.key === 'Tab' && e.shiftKey) {
-    e.preventDefault(); inputs[idx - 1]?.focus(); inputs[idx - 1]?.select();
-  }
-});
-
-const originalRender = render;
-render = function() { originalRender(); setTimeout(addBulkFillButtons, 0); renderMobileView(); };
-
-// Set up Draft LocalStorage restoration
-const STORAGE_KEY = `timesheet_draft_${currentYear}_${currentMonth}`;
-const saved = localStorage.getItem(STORAGE_KEY);
-if (saved) {
-  try {
-    const parsed = JSON.parse(saved);
-    if (parsed && Array.isArray(parsed)) {
-      if (confirm('Restore unsaved timesheet changes from last session?')) {
-        activities = parsed.map(normalizeActivity);
-      } else {
-        localStorage.removeItem(STORAGE_KEY);
-      }
-    }
-  } catch (e) {}
-}
-setInterval(() => {
-  localStorage.setItem(STORAGE_KEY, JSON.stringify(activities));
-}, 5000);
 
 render();
 </script>
