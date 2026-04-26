@@ -326,12 +326,63 @@
   }
 
   @media (max-width: 768px) {
-    .glass-roster { grid-template-columns: repeat(7, minmax(40px, 1fr)); gap: 4px; padding: 8px; }
-    .day-card { min-height: 80px; padding: 8px; }
-    .day-num { font-size: 1rem !important; }
-    .time-row { font-size: 0.6rem; flex-direction: column; gap: 2px; }
-    .roster-header { flex-direction: column; align-items: flex-start; }
-    .stats-strip { width: 100%; justify-content: space-between; }
+    /* ── Header ── */
+    .roster-header { flex-direction: column; align-items: flex-start; gap: 10px; margin-bottom: 16px; }
+    .month-title { font-size: 1.5rem; }
+    .month-progress-container { width: 100% !important; margin-top: 8px; }
+    .stats-grid { display: grid !important; grid-template-columns: repeat(3, 1fr); gap: 6px !important; margin-top: 10px !important; }
+    .metric-card { padding: 8px 6px !important; border-radius: 10px !important; text-align: center; }
+    .metric-card > div:first-child { font-size: 0.5rem !important; }
+    .metric-card > div:last-child { font-size: 1rem !important; }
+
+    /* ── Actions row ── */
+    .roster-actions { width: 100%; justify-content: space-between; gap: 6px; flex-wrap: nowrap; }
+    .export-report-btn { display: none !important; }
+    .date-picker-group select.form-control { font-size: 0.8rem !important; padding: 6px 4px !important; }
+
+    /* ── Calendar grid ── */
+    .glass-roster { grid-template-columns: repeat(7, 1fr); gap: 3px; padding: 6px; border-radius: 14px; overflow: hidden; }
+    .dow-header { font-size: 0.55rem; letter-spacing: 0; padding: 5px 0; }
+
+    /* ── Day cards — bigger touch targets ── */
+    .day-card { min-height: 52px; padding: 5px 3px; border-radius: 8px; cursor: pointer; transition: transform 0.1s, background 0.2s; }
+    .day-card:hover { transform: none; box-shadow: none; }
+    .day-card:active { transform: scale(0.92); }
+    .day-num { font-size: 0.82rem !important; font-weight: 700; }
+    .today-badge { display: none; }
+
+    /* ── Hide text, keep progress bar ── */
+    .time-row { display: none !important; }
+    .day-content { padding-top: 2px; }
+    .total-tag { display: none !important; }
+    .hours-pill { margin-top: 3px; height: 3px; }
+    .holiday-tag { font-size: 0.45rem; top: 3px; right: 2px; letter-spacing: 0; }
+
+    /* ── Status tints (applied by JS) ── */
+    .day-card.mob-present { background: rgba(52,211,153,0.14) !important; border-color: rgba(52,211,153,0.3) !important; }
+    .day-card.mob-partial  { background: rgba(245,158,11,0.14) !important; border-color: rgba(245,158,11,0.3) !important; }
+    .day-card.mob-absent   { background: rgba(239,68,68,0.09) !important;  border-color: rgba(239,68,68,0.2) !important; }
+
+    /* ── Bottom-sheet modal ── */
+    #action-modal { align-items: flex-end !important; justify-content: center !important; padding: 0 !important; }
+    .modal-content {
+      width: 100% !important;
+      max-width: 100% !important;
+      border-radius: 20px 20px 0 0 !important;
+      padding: 16px 20px calc(24px + env(safe-area-inset-bottom, 0px)) !important;
+      max-height: 90vh;
+      overflow-y: auto;
+    }
+    .form-control { font-size: 1rem; padding: 14px; }
+    .quick-presets { flex-wrap: wrap !important; }
+    .preset-btn { font-size: 0.8rem !important; padding: 8px 14px !important; }
+  }
+
+  @media (max-width: 400px) {
+    .glass-roster { gap: 2px; padding: 4px; }
+    .day-card { min-height: 44px; padding: 4px 2px; }
+    .day-num { font-size: 0.72rem !important; }
+    .dow-header { font-size: 0.48rem; }
   }
 </style>
 {% endblock %}
@@ -617,5 +668,29 @@
   window.addEventListener('click', (e) => {
     if (e.target.id === 'action-modal') closeModal();
   });
+
+  // Apply status tints on mobile
+  function applyMobileColors() {
+    if (window.innerWidth > 768) return;
+    document.querySelectorAll('.day-card:not(.other-month)').forEach(card => {
+      const inTime = card.dataset.in;
+      const isLeave = card.dataset.isLeave === 'true';
+      const isWkd = card.classList.contains('weekend');
+      const isHol = card.classList.contains('holiday');
+      if (isWkd || isHol || isLeave) return;
+      if (!inTime) {
+        // Workday with no record — mark absent
+        const dayNum = parseInt(card.dataset.date?.split('-')[2]);
+        const cardDate = new Date(card.dataset.date);
+        if (cardDate <= new Date()) card.classList.add('mob-absent');
+        return;
+      }
+      // Has check-in: check progress bar percentage
+      const bar = card.querySelector('.hours-bar');
+      const pct = bar ? parseFloat(bar.dataset.pct || 0) : 100;
+      card.classList.add(pct >= 95 ? 'mob-present' : 'mob-partial');
+    });
+  }
+  applyMobileColors();
 </script>
 {% endblock %}

@@ -151,8 +151,32 @@
   .wa-day-card:hover .day-actions { opacity: 1; }
 
   @media (max-width: 768px) {
-    .wa-hero { grid-template-columns: 1fr 1fr; }
-    .wa-stat-card { border: none !important; }
+    .wa-hero {
+      grid-template-columns: 1fr 1fr;
+      padding: 20px 16px;
+      gap: 16px;
+    }
+    .wa-stat-card { border-right: none !important; border-bottom: 1px solid var(--surface-border); padding: 12px 8px; }
+    .wa-stat-card:last-child, .wa-stat-card:nth-child(even) { border-bottom: none; }
+    .wa-stat-val { font-size: 1.75rem; }
+    .wa-day-grid { grid-template-columns: repeat(2, 1fr); gap: 10px; }
+    .wa-day-hrs { font-size: 1.5rem; }
+    /* Table: let it scroll horizontally */
+    .wa-table-card { overflow-x: auto; }
+    .wa-table th, .wa-table td { padding: 12px 12px; font-size: 0.8rem; }
+    /* Hide less important columns */
+    .wa-table th:nth-child(6), .wa-table td:nth-child(6) { display: none; } /* Variance */
+  }
+
+  @media (max-width: 480px) {
+    .wa-hero { grid-template-columns: 1fr 1fr; padding: 16px 12px; }
+    .wa-stat-val { font-size: 1.4rem; }
+    .wa-day-grid { grid-template-columns: repeat(2, 1fr); gap: 8px; }
+    .wa-day-card { padding: 14px 10px; }
+    .wa-hero { margin-bottom: 20px; }
+    /* Stack table tighter */
+    .wa-table th:nth-child(3), .wa-table td:nth-child(3),
+    .wa-table th:nth-child(4), .wa-table td:nth-child(4) { display: none; } /* Clock-in / Clock-out */
   }
 
   @media print {

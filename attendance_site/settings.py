@@ -1,8 +1,10 @@
 from pathlib import Path
 import os
 import yaml
+from dotenv import load_dotenv
 
 BASE_DIR = Path(__file__).resolve().parent.parent
+load_dotenv(BASE_DIR / ".env")
 
 # SECURITY WARNING: keep the secret key used in production secret!
 SECRET_KEY = os.environ.get("DJANGO_SECRET_KEY")
@@ -19,7 +21,7 @@ ALLOWED_HOSTS: list[str] = [
     h.strip()
     for h in os.environ.get(
         "DJANGO_ALLOWED_HOSTS",
-        "localhost,127.0.0.1,attendacetracker.duckdns.org,49.36.99.36",
+        "localhost,127.0.0.1,attendacetracker.duckdns.org,49.36.99.36,192.168.29.122,.vercel.app",
     ).split(",")
     if h.strip()
 ]
@@ -45,6 +47,7 @@ INSTALLED_APPS = [
     "rest_framework_simplejwt",
     "corsheaders",
     "axes",
+    "django_apscheduler",
     "attendance",
 ]
 
@@ -263,7 +266,7 @@ CSP_IMG_SRC = (
 # ------------------------------------------------------------------
 CORS_ALLOWED_ORIGINS = os.environ.get(
     "CORS_ALLOWED_ORIGINS", 
-    "http://localhost:8000,http://127.0.0.1:8000,http://attendacetracker.duckdns.org,https://attendacetracker.duckdns.org"
+    "http://localhost:8000,http://127.0.0.1:8000,http://attendacetracker.duckdns.org,https://attendacetracker.duckdns.org,http://192.168.29.122:8000"
 )
 CORS_ALLOWED_ORIGINS = [
     origin.strip()
@@ -299,11 +302,26 @@ RATELIMIT_VIEW = 'attendance_site.urls.ratelimited_error'
 # ------------------------------------------------------------------
 # EMAIL CONFIGURATION
 # ------------------------------------------------------------------
-# Prints emails (like password reset) to the console log instead of crashing
-# For production via SMTP, change EMAIL_BACKEND and set EMAIL_HOST etc.
-EMAIL_BACKEND = os.environ.get("EMAIL_BACKEND", "django.core.mail.backends.console.EmailBackend")
-EMAIL_HOST = os.environ.get("EMAIL_HOST", "")
+# Use environment variables for SMTP settings in production
+EMAIL_BACKEND = os.environ.get("EMAIL_BACKEND", "django.core.mail.backends.smtp.EmailBackend")
+EMAIL_HOST = os.environ.get("EMAIL_HOST", "smtp.gmail.com")
 EMAIL_PORT = int(os.environ.get("EMAIL_PORT", 587))
 EMAIL_HOST_USER = os.environ.get("EMAIL_HOST_USER", "")
 EMAIL_HOST_PASSWORD = os.environ.get("EMAIL_HOST_PASSWORD", "")
 EMAIL_USE_TLS = os.environ.get("EMAIL_USE_TLS", "True") == "True"
+DEFAULT_FROM_EMAIL = os.environ.get("DEFAULT_FROM_EMAIL", "Attendance Tracker <noreply@example.com>")
+
+# ------------------------------------------------------------------
+# SFTP CONFIGURATION (for backups/exports)
+# ------------------------------------------------------------------
+SFTP_HOST = os.environ.get("SFTP_HOST", "")
+SFTP_PORT = int(os.environ.get("SFTP_PORT", 22))
+SFTP_USER = os.environ.get("SFTP_USER", "")
+SFTP_PASS = os.environ.get("SFTP_PASS", "")
+SFTP_REMOTE_DIR = os.environ.get("SFTP_REMOTE_DIR", "./backups")
+
+# ------------------------------------------------------------------
+# SCHEDULER SETTINGS
+# ------------------------------------------------------------------
+APSCHEDULER_DATETIME_FORMAT = "N j, Y, f:s a"
+APSCHEDULER_RUN_NOW_TIMEOUT = 25  # Seconds

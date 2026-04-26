@@ -15,6 +15,7 @@ from django.db import transaction
 from django.http import HttpResponse
 from django.shortcuts import redirect, render
 from django.urls import reverse
+from django.core.mail import send_mail
 from django.utils import timezone
 from django_ratelimit.decorators import ratelimit
 
@@ -916,8 +917,23 @@ def compoff_delete_view(request, compoff_id):
 @login_required
 def support_view(request):
     if request.method == "POST":
-        messages.success(request, "Thank you! Your report has been sent.")
-        return redirect("timesheet")
+        message_body = request.POST.get("message", "")
+        subject = f"Bug Report / Support Request from {request.user.username}"
+        
+        try:
+            send_mail(
+                subject,
+                f"User: {request.user.username}\nEmail: {request.user.email}\n\nMessage:\n{message_body}",
+                settings.DEFAULT_FROM_EMAIL,
+                [settings.EMAIL_HOST_USER],
+                fail_silently=False,
+            )
+            messages.success(request, "Thank you! Your report has been sent to the administrator.")
+        except Exception as e:
+            logger.error("Failed to send support email: %s", str(e))
+            messages.error(request, "Sorry, there was an error sending your report. Please try again later.")
+            
+        return redirect("checkin_checkout")
     return render(request, "attendance/support.html")
 
 def privacy_policy_view(request): return render(request, 'attendance/privacy.html')

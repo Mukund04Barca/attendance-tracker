@@ -212,17 +212,36 @@
   @media (max-width: 768px) {
     .grid-system { grid-template-columns: 1fr; gap: 16px; }
     .grid-split { grid-template-columns: 1fr; }
-    .hero-card-3d { padding: 24px 20px; transform: none !important; }
-    .hero-title { font-size: 28px !important; }
+    .hero-card-3d { padding: 20px 18px; transform: none !important; }
+    .hero-card-3d .hero-title { font-size: 28px !important; }
     .action-deck { flex-direction: column; width: 100%; }
-    .btn-cinematic { width: 100%; justify-content: center; min-height: 48px; }
-    .hero-stats { flex-direction: column; gap: 20px; }
+    .btn-cinematic { width: 100%; justify-content: center; min-height: 52px; font-size: 15px; }
+    /* Keep stats horizontal (3-across) on mobile — saves vertical space */
+    .hero-stats {
+      display: grid;
+      grid-template-columns: repeat(3, 1fr);
+      gap: 12px;
+      margin-top: 20px;
+    }
+    .hero-stat-value { font-size: 20px; }
+    .hero-stat-label { font-size: 9px; letter-spacing: 0.5px; }
+    .hero-stat-change { font-size: 10px; }
+    /* Safe area for notched phones */
+    .cinematic-container {
+      padding-bottom: env(safe-area-inset-bottom, 0px);
+    }
   }
 
   @media (max-width: 480px) {
+    .hero-card-3d { padding: 16px 14px; }
+    .hero-card-3d .hero-title { font-size: 24px !important; }
     .chrono-table { font-size: 12px; }
     .chrono-table td, .chrono-table th { padding: 10px 4px; }
+    /* Hide less critical columns on very small screens */
     .chrono-table th:nth-child(3), .chrono-table td:nth-child(3) { display: none; }
+    .chrono-table th:nth-child(5), .chrono-table td:nth-child(5) { display: none; }
+    .hero-stats { grid-template-columns: repeat(3, 1fr); gap: 8px; }
+    .hero-stat-value { font-size: 18px; }
   }
 
   @media (prefers-reduced-motion: reduce) {

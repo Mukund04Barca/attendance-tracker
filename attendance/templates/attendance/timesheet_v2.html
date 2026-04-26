@@ -319,27 +319,101 @@
     background: rgba(59, 130, 246, 0.12);
   }
 
-  @media (max-width: 600px) {
-    .ts-scroll { display: none; }
-    .mobile-day-view {
-      display: block !important;
-      padding: 16px;
+  /* ── Mobile blocker ── */
+  .mobile-blocker {
+    display: none;
+  }
+  @media (max-width: 768px) {
+    /* Hide entire timesheet on mobile */
+    .ts-container { display: none !important; }
+    /* Show blocker instead */
+    .mobile-blocker {
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: center;
+      text-align: center;
+      min-height: 70vh;
+      padding: 32px 24px;
+      gap: 20px;
     }
-    .mobile-day-card {
-      background: rgba(255,255,255,0.05);
-      border: 1px solid var(--border-color);
-      border-radius: 12px;
-      padding: 16px;
+    .mobile-blocker-icon {
+      font-size: 4rem;
+      animation: float 3s ease-in-out infinite;
+    }
+    @keyframes float {
+      0%, 100% { transform: translateY(0); }
+      50% { transform: translateY(-10px); }
+    }
+    .mobile-blocker-card {
+      background: linear-gradient(145deg, rgba(255,255,255,0.07), rgba(15,23,42,0.4));
+      border: 1px solid rgba(255,255,255,0.1);
+      border-radius: 20px;
+      padding: 32px 28px;
+      max-width: 340px;
+      box-shadow: 0 24px 48px rgba(0,0,0,0.3);
+    }
+    .mobile-blocker-title {
+      font-size: 1.4rem;
+      font-weight: 800;
+      font-family: var(--display-font);
+      color: #F8FAFC;
       margin-bottom: 12px;
+      letter-spacing: -0.5px;
+    }
+    .mobile-blocker-text {
+      font-size: 0.9rem;
+      color: #94A3B8;
+      line-height: 1.6;
+      margin-bottom: 24px;
+    }
+    .mobile-blocker-btn {
+      display: inline-flex;
+      align-items: center;
+      gap: 8px;
+      padding: 12px 28px;
+      background: linear-gradient(135deg, #06b6d4, #10b981);
+      color: #020617;
+      font-weight: 800;
+      font-size: 0.9rem;
+      border-radius: 12px;
+      text-decoration: none;
+      box-shadow: 0 8px 24px rgba(6,182,212,0.35);
+      transition: transform 0.2s, box-shadow 0.2s;
+    }
+    .mobile-blocker-btn:hover {
+      transform: translateY(-2px);
+      box-shadow: 0 12px 32px rgba(6,182,212,0.5);
+      color: #020617;
+    }
+    .mobile-blocker-tip {
+      font-size: 0.75rem;
+      color: #475569;
+      margin-top: 16px;
     }
   }
-  @media (min-width: 601px) {
-    .mobile-day-view { display: none !important; }
-  }
+  /* Mobile: timesheet hidden, blocker shown instead — see .mobile-blocker CSS above */
 </style>
 {% endblock %}
 
 {% block content %}
+
+<!-- ── Mobile Blocker — shown only on phones ── -->
+<div class="mobile-blocker">
+  <div class="mobile-blocker-icon">💻</div>
+  <div class="mobile-blocker-card">
+    <div class="mobile-blocker-title">Desktop Required</div>
+    <div class="mobile-blocker-text">
+      The Timesheet Engine is optimised for keyboard and mouse input.
+      Please open it on your <strong>laptop or PC</strong> for the best experience.
+    </div>
+    <a href="{% url 'checkin_checkout' %}" class="mobile-blocker-btn">
+      ← Back to Dashboard
+    </a>
+    <div class="mobile-blocker-tip">You can still check in/out and view analytics on mobile.</div>
+  </div>
+</div>
+
 <div class="ts-container">
   
   <!-- Modern Summary Dashboard -->
@@ -455,11 +529,23 @@ function isSunday(d, y, m) { return new Date(y, m, d).getDay() === 0; }
 function isSaturday(d, y, m) { return new Date(y, m, d).getDay() === 6; }
 function isHoliday(d) { return !!holidays[String(d)]; }
 
-function totalHours(dd) { 
-  if (!dd.in || !dd.out || dd.in === 'LEAVE' || dd.in === 'HOLIDAY') return 0; 
-  const [ih,im]=dd.in.split(':').map(Number); 
-  const [oh,om]=dd.out.split(':').map(Number); 
-  return (oh*60+om-ih*60-im)/60; 
+function parseTimeToMins(str) {
+  if (!str) return NaN;
+  // Strip date portion from ISO datetime: "2026-04-25T09:00:00" → "09:00:00"
+  const timePart = str.includes('T') ? str.split('T')[1] : str;
+  // Strip timezone suffix if present: "09:00:00+05:30" → "09:00:00"
+  const cleanTime = timePart.split('+')[0].split('Z')[0];
+  const parts = cleanTime.split(':').map(Number);
+  if (isNaN(parts[0]) || isNaN(parts[1])) return NaN;
+  return parts[0] * 60 + (parts[1] || 0);
+}
+
+function totalHours(dd) {
+  if (!dd.in || !dd.out || dd.in === 'LEAVE' || dd.in === 'HOLIDAY') return 0;
+  const inMins  = parseTimeToMins(dd.in);
+  const outMins = parseTimeToMins(dd.out);
+  if (isNaN(inMins) || isNaN(outMins) || outMins <= inMins) return 0;
+  return (outMins - inMins) / 60;
 }
 
 function getWeeks(y, m) {
