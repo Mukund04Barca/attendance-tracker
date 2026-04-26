@@ -343,7 +343,7 @@ def signup_view(request):
         form = UserCreationForm(request.POST)
         if form.is_valid():
             user = form.save()
-            login(request, user)
+            login(request, user, backend='django.contrib.auth.backends.ModelBackend')
             logger.info("New user signed up: %s", user.username)
             return redirect("timesheet")
     else:
