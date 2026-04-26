@@ -14,19 +14,16 @@ logging:
   version: 1
   disable_existing_loggers: false
   handlers:
-    file:
-      class: logging.handlers.RotatingFileHandler
+    console:
+      class: logging.StreamHandler
       level: INFO
-      filename: logs/attendance.log
-      maxBytes: 5242880   # 5 MB
-      backupCount: 5
   loggers:
     django.request:
-      handlers: [file]
+      handlers: [console]
       level: INFO
       propagate: true
     attendance:
-      handlers: [file]
+      handlers: [console]
       level: INFO
       propagate: true
 

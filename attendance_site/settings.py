@@ -184,9 +184,12 @@ CONFIG_FILE = os.environ.get(
     str(BASE_DIR / "config" / "settings.yaml"),
 )
 
-# Ensure logs directory exists
+# Ensure logs directory exists (catch error on read-only environments like Vercel)
 LOGS_DIR = BASE_DIR / "logs"
-os.makedirs(LOGS_DIR, exist_ok=True)
+try:
+    os.makedirs(LOGS_DIR, exist_ok=True)
+except OSError:
+    pass
 
 try:
     with open(CONFIG_FILE, "r", encoding="utf-8") as f:
