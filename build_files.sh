@@ -1,5 +1,5 @@
 #!/bin/bash
 echo "Building Vercel deployment..."
-pip install -r requirements.txt
-python manage.py collectstatic --noinput --clear
+python3 -m pip install -r requirements.txt --break-system-packages
+python3 manage.py collectstatic --noinput --clear
 echo "Build complete."
