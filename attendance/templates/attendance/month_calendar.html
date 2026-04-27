@@ -542,6 +542,7 @@
            {% if not cell.is_current_month %}other-month{% endif %} 
            {% if cell.date == today %}today{% endif %} 
            {% if cell.is_holiday %}holiday{% endif %}
+           {% if cell.record.is_leave %}leave{% endif %}
            {% if cell.date.weekday >= 5 %}weekend{% endif %}"
            data-date="{{ cell.date|date:'Y-m-d' }}"
            data-pretty="{{ cell.date|date:'d M Y' }}"
@@ -565,25 +566,32 @@
 
         {% if cell.record %}
           <div class="day-content">
-            <div class="time-row" style="margin-bottom: 4px;">
-              <span style="opacity: 0.6;">🡣</span>
-              <span style="font-weight: 600; color: var(--text-mid);">{{ cell.record.check_in|default:"—" }}</span>
-            </div>
-            <div class="time-row" style="margin-bottom: 4px;">
-              <span style="opacity: 0.6;">🡡</span>
-              <span style="font-weight: 600; color: var(--text-mid);">{{ cell.record.check_out|default:"—" }}</span>
-            </div>
-            
-            <div class="hours-pill" style="height: 3px; background: rgba(255,255,255,0.05); border-radius: 1.5px; overflow: hidden;">
-              <div class="hours-bar" data-pct="{{ cell.record.hours|percentage:9 }}" style="height: 100%; background: {% if cell.record.hours >= 9 %}var(--emerald){% elif cell.record.hours >= 7 %}#f59e0b{% else %}#ef4444{% endif %}; box-shadow: 0 0 8px {% if cell.record.hours >= 9 %}rgba(52,211,153,0.4){% elif cell.record.hours >= 7 %}rgba(245,158,11,0.4){% else %}rgba(239,68,68,0.4){% endif %};"></div>
-            </div>
-            
-            <div style="display: flex; justify-content: space-between; align-items: center; margin-top: 6px;">
-              <span style="font-size: 0.6rem; color: var(--text-dim);">{{ cell.record.hours|floatformat:1 }}h</span>
-              {% if cell.record.hours >= 9 %}
-                <span style="color: var(--emerald); font-size: 0.7rem;">✓</span>
-              {% endif %}
-            </div>
+            {% if cell.record.is_leave %}
+              <div class="empty-day" style="color: #fca5a5; opacity: 1; margin-top: 10px;">
+                <span style="font-size: 1.2rem; display: block; margin-bottom: 2px;">🏖️</span>
+                <span style="font-size: 0.65rem; text-transform: uppercase; font-weight: 800; letter-spacing: 0.5px;">On Leave</span>
+              </div>
+            {% else %}
+              <div class="time-row" style="margin-bottom: 4px;">
+                <span style="opacity: 0.6;">🡣</span>
+                <span style="font-weight: 600; color: var(--text-mid);">{{ cell.record.check_in|default:"—" }}</span>
+              </div>
+              <div class="time-row" style="margin-bottom: 4px;">
+                <span style="opacity: 0.6;">🡡</span>
+                <span style="font-weight: 600; color: var(--text-mid);">{{ cell.record.check_out|default:"—" }}</span>
+              </div>
+              
+              <div class="hours-pill" style="height: 3px; background: rgba(255,255,255,0.05); border-radius: 1.5px; overflow: hidden;">
+                <div class="hours-bar" data-pct="{{ cell.record.hours|percentage:9 }}" style="height: 100%; background: {% if cell.record.hours >= 9 %}var(--emerald){% elif cell.record.hours >= 7 %}#f59e0b{% else %}#ef4444{% endif %}; box-shadow: 0 0 8px {% if cell.record.hours >= 9 %}rgba(52,211,153,0.4){% elif cell.record.hours >= 7 %}rgba(245,158,11,0.4){% else %}rgba(239,68,68,0.4){% endif %};"></div>
+              </div>
+              
+              <div style="display: flex; justify-content: space-between; align-items: center; margin-top: 6px;">
+                <span style="font-size: 0.6rem; color: var(--text-dim);">{{ cell.record.hours|floatformat:1 }}h</span>
+                {% if cell.record.hours >= 9 %}
+                  <span style="color: var(--emerald); font-size: 0.7rem;">✓</span>
+                {% endif %}
+              </div>
+            {% endif %}
           </div>
         {% elif cell.is_current_month and not cell.is_holiday %}
           <div class="empty-day" style="margin-top: auto; display: flex; flex-direction: column; align-items: center; gap: 4px; opacity: 0.4;">
@@ -677,7 +685,9 @@
       const isLeave = card.dataset.isLeave === 'true';
       const isWkd = card.classList.contains('weekend');
       const isHol = card.classList.contains('holiday');
-      if (isWkd || isHol || isLeave) return;
+      const isLve = card.classList.contains('leave');
+      if (isLve) { card.classList.add('mob-absent'); return; }
+      if (isWkd || isHol) return;
       if (!inTime) {
         // Workday with no record — mark absent
         const dayNum = parseInt(card.dataset.date?.split('-')[2]);
