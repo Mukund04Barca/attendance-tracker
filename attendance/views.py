@@ -161,12 +161,14 @@ def checkin_checkout_view(request):
             logger.info(
                 "User %s checked in at %s", request.user.username, now.isoformat()
             )
+            messages.success(request, f"Check-in successful at {now.strftime('%H:%M')}")
         elif action in {"check_out", "checkout"} and record.check_out is None and record.check_in:
             record.check_out = now
             record.save()
             logger.info(
                 "User %s checked out at %s", request.user.username, now.isoformat()
             )
+            messages.success(request, f"Check-out successful at {now.strftime('%H:%M')}")
         elif action == "set_manual":
             check_in_str = request.POST.get("manual_check_in") or ""
             check_out_str = request.POST.get("manual_check_out") or ""
@@ -190,6 +192,7 @@ def checkin_checkout_view(request):
                 )
             except ValueError:
                 pass
+            messages.success(request, f"Manual time updated for today.")
         elif action == "delete":
             logger.info(
                 "User %s deleted attendance for %s",
@@ -197,9 +200,10 @@ def checkin_checkout_view(request):
                 today.isoformat(),
             )
             record.delete()
+            messages.success(request, "Attendance record deleted.")
             return redirect("checkin_checkout")
 
-        return redirect("weekly_summary")
+        return redirect("checkin_checkout")
 
     hours_today = None
     if record.check_in and record.check_out:
