@@ -318,7 +318,8 @@
       {% if not record.check_in %}
         <form method="post">
           {% csrf_token %}
-          <button type="submit" name="action" value="check_in" class="btn-cinematic btn-cinematic-primary" aria-label="Check in for today" onclick="this.disabled=true; this.innerHTML='<span class=\'spinner-border spinner-border-sm\'></span> Starting...'; this.form.submit();">
+          <input type="hidden" name="action" value="check_in">
+          <button type="submit" class="btn-cinematic btn-cinematic-primary" aria-label="Check in for today" onclick="this.disabled=true; this.innerHTML='<span class=\'spinner-border spinner-border-sm\'></span> Starting...'; this.form.submit();">
             <svg width="20" height="20" fill="none" stroke="currentColor" stroke-width="2"><path d="M15 3h4a2 2 0 012 2v14a2 2 0 01-2 2h-4"/><polyline points="10 17 15 12 10 7"/><line x1="15" y1="12" x2="3" y2="12"/></svg>
             Start Session
           </button>
@@ -326,7 +327,8 @@
       {% elif not record.check_out %}
         <form method="post">
           {% csrf_token %}
-          <button type="submit" name="action" value="check_out" class="btn-cinematic btn-cinematic-danger" aria-label="Check out for today" onclick="this.disabled=true; this.innerHTML='<span class=\'spinner-border spinner-border-sm\'></span> Ending...'; this.form.submit();">
+          <input type="hidden" name="action" value="check_out">
+          <button type="submit" class="btn-cinematic btn-cinematic-danger" aria-label="Check out for today" onclick="this.disabled=true; this.innerHTML='<span class=\'spinner-border spinner-border-sm\'></span> Ending...'; this.form.submit();">
             <svg width="20" height="20" fill="none" stroke="currentColor" stroke-width="2"><path d="M9 21H5a2 2 0 01-2-2V5a2 2 0 012-2h4"/><polyline points="16 17 21 12 16 7"/><line x1="21" y1="12" x2="9" y2="12"/></svg>
             End Session
           </button>
@@ -534,8 +536,9 @@
           </div>
         </div>
         <div class="modal-footer border-0 pt-0">
+          <input type="hidden" name="action" value="set_manual">
           <button type="button" class="btn btn-link text-muted text-decoration-none" data-bs-dismiss="modal">Cancel</button>
-          <button type="submit" name="action" value="set_manual" class="btn-cinematic btn-cinematic-primary" style="padding: 8px 24px;" onclick="this.disabled=true; this.innerHTML='Saving...'; this.form.submit();">Save Time</button>
+          <button type="submit" class="btn-cinematic btn-cinematic-primary" style="padding: 8px 24px;" onclick="this.disabled=true; this.innerHTML='Saving...'; this.form.submit();">Save Time</button>
         </div>
       </form>
     </div>
