@@ -437,7 +437,20 @@ def month_calendar_view(request):
             "extra_display": format_duration(extra_this_day, show_sign=True) if extra_this_day > 0 else "",
             "balance_display": format_duration(balance, show_sign=True),
             "is_leave": bool(r.leave_type),
+            "is_compoff_claimable": r.date.weekday() == 5 and hours >= SATURDAY_TARGET_HOURS,
         }
+
+    compoffs = CompOffRecord.objects.filter(user=request.user)
+    compoff_worked_dates = {c.worked_date for c in compoffs}
+    compoff_consumed_dates = {c.leave_date for c in compoffs if c.leave_date}
+    
+    # Update records_by_date with compoff status
+    for d, rec in records_by_date.items():
+        if d in compoff_worked_dates:
+            rec["compoff_status"] = "earned"
+        if d in compoff_consumed_dates:
+            rec["compoff_status"] = "consumed"
+            rec["is_leave"] = True  # Comp-off consumption is a form of leave
 
     holiday_dates = {h.date for h in Holiday.objects.filter(date__year=year, date__month=month)}
     working_days = 0
@@ -486,6 +499,7 @@ def month_calendar_view(request):
             "bank_progress_percent": progress_percent,
             "comp_off_eligible": saturday_comp_off_eligible,
             "earned_extra_display": format_duration(total_extra_hours),
+            "available_compoffs": CompOffRecord.objects.filter(user=request.user, status='pending').count(),
             "short_hours_display": format_duration(total_short_hours),
         }
     }
@@ -579,10 +593,38 @@ def edit_record_view(request, record_date):
     )
 
     try:
-        if mark_leave:
+        if action == "leave":
             record.check_in = None
             record.check_out = None
             record.leave_type = "Leave"
+        elif action == "claim_compoff":
+            # Only for Saturdays with 6+ hours
+            if target_date.weekday() == 5:
+                if record.check_in and record.check_out:
+                    delta = record.check_out - record.check_in
+                    if (delta.total_seconds() / 3600.0) >= SATURDAY_TARGET_HOURS:
+                        CompOffRecord.objects.get_or_create(
+                            user=request.user, 
+                            worked_date=target_date,
+                            defaults={'reason': 'Saturday Work'}
+                        )
+                        messages.success(request, f"Comp-off earned for {target_date}!")
+                    else:
+                        messages.error(request, f"Minimum {SATURDAY_TARGET_HOURS} hours required for Comp-off.")
+        elif action == "consume_compoff":
+            # Consume an available comp-off for this date
+            available = CompOffRecord.objects.filter(user=request.user, status='pending').first()
+            if available:
+                available.leave_date = target_date
+                available.status = 'consumed'
+                available.save()
+                
+                record.check_in = None
+                record.check_out = None
+                record.leave_type = "Comp-Off"
+                messages.success(request, f"Comp-off consumed for {target_date}.")
+            else:
+                messages.error(request, "No pending comp-offs available to consume.")
         else:
             record.leave_type = None
             if check_in_str:
@@ -594,7 +636,9 @@ def edit_record_view(request, record_date):
                 record.check_out = timezone.make_aware(co_naive)
             else: record.check_out = None
         record.save()
-    except: pass
+    except Exception as e:
+        logger.error("Error in edit_record_view: %s", str(e))
+        pass
     url = reverse("month_calendar")
     return redirect(f"{url}?year={target_date.year}&month={target_date.month}")
 
