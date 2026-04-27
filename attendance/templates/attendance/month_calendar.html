@@ -586,7 +586,7 @@
               </div>
               
               <div style="display: flex; justify-content: space-between; align-items: center; margin-top: 6px;">
-                <span style="font-size: 0.6rem; color: var(--text-dim);">{{ cell.record.hours|floatformat:1 }}h</span>
+                <span style="font-size: 0.6rem; color: var(--text-dim);">{{ cell.record.hours_display }}</span>
                 {% if cell.record.hours >= 9 %}
                   <span style="color: var(--emerald); font-size: 0.7rem;">✓</span>
                 {% endif %}
